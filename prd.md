@@ -168,7 +168,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 3,
     "title": "Add sampling classification logic (under/optimal/over) based on seeing",
     "description": "Implement DSO seeing-based classification using thresholds around seeing/2 and seeing/3. Return status + recommended target range. Unit test boundary conditions.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 4,

@@ -355,4 +355,349 @@ public class SamplingCalculatorServiceTests
         Assert.NotNull(result.FRatio);
         Assert.Equal(7.5, result.FRatio!.Value, 1);
     }
+
+    // --- Task 3: Classification boundary conditions ---
+
+    [Fact]
+    public void SamplingStatus_ExactlyAtOptimalMax_IsOptimal()
+    {
+        // seeing=2.0, optimalMax = 1.0
+        // pixelScale = 206.265 * pixelSize / focal = 1.0
+        // pixelSize = 1.0 * 1000 / 206.265 = 4.8481...
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 1000.0 / 206.265,
+            Binning = 1,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        // pixelScale == seeing/2 == 1.0 => boundary is NOT > optimalMax, so Optimal
+        Assert.Equal(SamplingStatus.Optimal, result.Status);
+    }
+
+    [Fact]
+    public void SamplingStatus_ExactlyAtOptimalMin_IsOptimal()
+    {
+        // seeing=3.0, optimalMin = 1.0
+        // pixelScale = 206.265 * pixelSize / focal = 1.0
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 1000.0 / 206.265,
+            Binning = 1,
+            Seeing = 3.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        // pixelScale == seeing/3 == 1.0 => boundary is NOT < optimalMin, so Optimal
+        Assert.Equal(SamplingStatus.Optimal, result.Status);
+    }
+
+    [Fact]
+    public void SamplingStatus_JustAboveOptimalMax_IsUndersampled()
+    {
+        // seeing=2.0, optimalMax = 1.0
+        // pixelScale slightly above 1.0
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 1000.0 / 206.265 + 0.01,
+            Binning = 1,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Equal(SamplingStatus.Undersampled, result.Status);
+    }
+
+    [Fact]
+    public void SamplingStatus_JustBelowOptimalMin_IsOversampled()
+    {
+        // seeing=3.0, optimalMin = 1.0
+        // pixelScale slightly below 1.0
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 1000.0 / 206.265 - 0.01,
+            Binning = 1,
+            Seeing = 3.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Equal(SamplingStatus.Oversampled, result.Status);
+    }
+
+    // --- Task 3: Status message ---
+
+    [Fact]
+    public void StatusMessage_Optimal_ContainsWellMatched()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 3.879,
+            Binning = 1,
+            Seeing = 2.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Contains("well-matched", result.StatusMessage);
+        Assert.Contains("2.0", result.StatusMessage);
+    }
+
+    [Fact]
+    public void StatusMessage_Undersampled_ContainsUndersampled()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 500,
+            PixelSize = 5.0,
+            Binning = 1,
+            Seeing = 2.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Contains("undersampled", result.StatusMessage);
+    }
+
+    [Fact]
+    public void StatusMessage_Oversampled_ContainsOversampled()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 2000,
+            PixelSize = 2.0,
+            Binning = 1,
+            Seeing = 2.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Contains("oversampled", result.StatusMessage);
+    }
+
+    // --- Task 3: Binning recommendation ---
+
+    [Fact]
+    public void BinningRecommendation_WhenOversampled_SuggestsHigherBinning()
+    {
+        // pixelScale = 206.265 * 2.0 / 2000 = 0.206, seeing=2.0 => oversampled
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 2000,
+            PixelSize = 2.0,
+            Binning = 1,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.NotNull(result.RecommendedBinning);
+        Assert.True(result.RecommendedBinning > 1);
+        Assert.NotNull(result.BinningRecommendation);
+        Assert.Contains("binning", result.BinningRecommendation, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void BinningRecommendation_WhenOptimal_IsNull()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 3.879,
+            Binning = 1,
+            Seeing = 2.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Null(result.RecommendedBinning);
+        Assert.Null(result.BinningRecommendation);
+    }
+
+    [Fact]
+    public void BinningRecommendation_WhenUndersampled_IsNull()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 500,
+            PixelSize = 5.0,
+            Binning = 1,
+            Seeing = 2.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Null(result.RecommendedBinning);
+        Assert.Null(result.BinningRecommendation);
+    }
+
+    [Fact]
+    public void BinningRecommendation_AlreadyBinning4_NoRecommendation()
+    {
+        // Even if oversampled, can't go above 4
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 2000,
+            PixelSize = 2.0,
+            Binning = 4,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        // pixelScale = 206.265 * 8 / 2000 = 0.825 => optimal or close
+        // Might not be oversampled at binning 4
+        // If optimal, no recommendation. If still oversampled, binning=4 so no recommendation.
+        Assert.Null(result.RecommendedBinning);
+    }
+
+    // --- Task 3: Corrector recommendation ---
+
+    [Fact]
+    public void CorrectorRecommendation_WhenOversampled_SuggestsReducer()
+    {
+        // pixelScale = 206.265 * 3.76 / 1200 = 0.646, seeing=2.0, optMin=0.667 => just oversampled
+        // target = 0.833, newEffFocal = 206.265*3.76/0.833 = 931.3
+        // suggestedReducer = 1200*1.0/931.3 = 1.29 ... still > 0.95
+        // Need setup where the reducer factor lands in 0.5-0.95.
+        // pixelScale = 206.265 * 3.76 / 800 = 0.97 at f=800 => optimal
+        // Let's use focal=1000: pixelScale = 206.265*3.76/1000 = 0.7756, optMin=0.667 => optimal
+        // focal=1100: pixelScale = 0.705 => optimal
+        // focal=1200: pixelScale = 0.646 => oversampled (< 0.667)
+        // target=0.833, newEffFocal = 206.265*3.76/0.833 = 930.8
+        // reducer = 1200/930.8 = 1.289 — too high. The issue: focal is already close, reducer would need to be >1.
+        // Need a bigger gap: focal=1600, pixelScale=0.485, target=0.833
+        // newEffFocal = 206.265*3.76/0.833 = 930.8, reducer = 1600/930.8 = 0.582 => in range!
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1600,
+            PixelSize = 3.76,
+            Binning = 1,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Equal(SamplingStatus.Oversampled, result.Status);
+        Assert.NotNull(result.CorrectorRecommendation);
+        Assert.Contains("reducer", result.CorrectorRecommendation, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void CorrectorRecommendation_WhenUndersampled_SuggestsBarlow()
+    {
+        // pixelScale = 206.265 * 5.0 / 500 = 2.063, seeing=2.0 => undersampled
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 500,
+            PixelSize = 5.0,
+            Binning = 1,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Equal(SamplingStatus.Undersampled, result.Status);
+        Assert.NotNull(result.CorrectorRecommendation);
+        Assert.Contains("barlow", result.CorrectorRecommendation, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // --- Task 3: Extreme warnings ---
+
+    [Fact]
+    public void ExtremeWarning_WhenPixelScaleAbove4()
+    {
+        // pixelScale = 206.265 * 5.0 / 200 = 5.157 => extreme
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 200,
+            PixelSize = 5.0,
+            Binning = 1,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.NotNull(result.ExtremeWarning);
+        Assert.Contains(">4", result.ExtremeWarning);
+    }
+
+    [Fact]
+    public void ExtremeWarning_WhenPixelScaleBelow02()
+    {
+        // pixelScale = 206.265 * 1.0 / 5000 = 0.041 => extreme
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 5000,
+            PixelSize = 1.0,
+            Binning = 1,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.NotNull(result.ExtremeWarning);
+        Assert.Contains("<0.2", result.ExtremeWarning);
+    }
+
+    [Fact]
+    public void ExtremeWarning_NullWhenNormal()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            Binning = 1,
+            Seeing = 2.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.Null(result.ExtremeWarning);
+    }
+
+    // --- Task 3: Different seeing values ---
+
+    [Theory]
+    [InlineData(1.0, 0.333, 0.5)]
+    [InlineData(2.0, 0.667, 1.0)]
+    [InlineData(3.0, 1.0, 1.5)]
+    [InlineData(4.0, 1.333, 2.0)]
+    public void OptimalRange_ScalesWithSeeing(double seeing, double expectedMin, double expectedMax)
+    {
+        var input = new CalculatorInput { Seeing = seeing };
+        var result = _sut.Calculate(input);
+
+        Assert.Equal(expectedMin, result.OptimalRangeMin, 2);
+        Assert.Equal(expectedMax, result.OptimalRangeMax, 2);
+    }
 }

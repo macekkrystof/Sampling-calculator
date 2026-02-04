@@ -37,3 +37,26 @@
   - FOV is binning-invariant (binning cancels out in the formula) — good property to test
   - Calculation engine was already feature-complete from iteration 1; Task 2 mainly needed test coverage expansion
 ---
+
+## Iteration 3 - Add sampling classification logic (under/optimal/over) based on seeing
+- What was implemented:
+  - Added recommendation fields to CalculatorResult: StatusMessage, RecommendedBinning, BinningRecommendation, RecommendedCorrectorFactor, CorrectorRecommendation, ExtremeWarning
+  - Implemented recommendation logic in SamplingCalculatorService:
+    - Status message with invariant-culture formatted seeing value
+    - Binning recommendation when oversampled (suggests higher binning to approach optimal)
+    - Corrector recommendation: reducer for oversampled (focal ratio approach), barlow for undersampled
+    - Extreme warnings for pixelScale > 4″/px or < 0.2″/px
+  - Updated Home.razor to display StatusMessage and a recommendations card (binning, corrector, warnings)
+  - Removed old FormatStatusDescription method (replaced by StatusMessage from service)
+  - Added 20 new unit tests: boundary conditions (exact boundaries, just above/below), status messages, binning recommendations (oversampled/optimal/undersampled/binning-4), corrector recommendations, extreme warnings, Theory for optimal range scaling with seeing
+- Files changed:
+  - src/SamplingCalculator/Models/CalculatorResult.cs (added recommendation properties)
+  - src/SamplingCalculator/Services/SamplingCalculatorService.cs (recommendation logic + invariant culture)
+  - src/SamplingCalculator/Pages/Home.razor (display recommendations)
+  - tests/SamplingCalculator.Tests/UnitTest1.cs (20 new tests, total 40)
+  - prd.md (marked task 3 as passes: true)
+- Learnings for future iterations:
+  - Must use CultureInfo.InvariantCulture for string formatting — system locale uses comma decimal separator
+  - PRD formula `effectiveFocal = baseFocal * barlow / reducer` is inverted from physical reality; a 0.7× reducer INCREASES effective focal. Reducer recommendations for oversampled setups use focal ratio approach instead.
+  - Boundary tests: at exact thresholds (seeing/2, seeing/3), the status should be Optimal (not strict inequality)
+---

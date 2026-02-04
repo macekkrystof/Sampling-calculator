@@ -80,8 +80,27 @@
 
             <div class="result-card status-card status-@result.Status.ToString().ToLower()">
                 <span class="status-badge">@FormatStatus(result.Status)</span>
-                <p class="status-description">@FormatStatusDescription(result)</p>
+                <p class="status-description">@result.StatusMessage</p>
             </div>
+
+            @if (result.BinningRecommendation is not null || result.CorrectorRecommendation is not null || result.ExtremeWarning is not null)
+            {
+                <div class="result-card recommendations-card">
+                    <span class="metric-label">Recommendations</span>
+                    @if (result.BinningRecommendation is not null)
+                    {
+                        <p class="recommendation">@result.BinningRecommendation</p>
+                    }
+                    @if (result.CorrectorRecommendation is not null)
+                    {
+                        <p class="recommendation">@result.CorrectorRecommendation</p>
+                    }
+                    @if (result.ExtremeWarning is not null)
+                    {
+                        <p class="warning">⚠ @result.ExtremeWarning</p>
+                    }
+                </div>
+            }
 
             <div class="result-card">
                 <div class="metric">
@@ -141,14 +160,4 @@
         _ => "Unknown"
     };
 
-    private string FormatStatusDescription(CalculatorResult result) => result.Status switch
-    {
-        SamplingStatus.Undersampled =>
-            $"Your setup is likely undersampled for {Input.Seeing:F1}″ seeing. Pixel scale ({result.PixelScale:F2}″/px) is above the optimal range.",
-        SamplingStatus.Optimal =>
-            $"Your setup is well matched for {Input.Seeing:F1}″ seeing.",
-        SamplingStatus.Oversampled =>
-            $"Your setup is likely oversampled for {Input.Seeing:F1}″ seeing. Pixel scale ({result.PixelScale:F2}″/px) is below the optimal range.",
-        _ => ""
-    };
 }
