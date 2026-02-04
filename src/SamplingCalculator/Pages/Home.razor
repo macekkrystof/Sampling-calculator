@@ -1,0 +1,154 @@
+@page "/"
+@using SamplingCalculator.Models
+@using SamplingCalculator.Services
+
+<PageTitle>Sampling Calculator</PageTitle>
+
+<div class="calculator-container">
+    <header class="calculator-header">
+        <h1>Sampling Calculator</h1>
+        <p class="subtitle">Camera &times; Telescope sampling evaluator for astrophotography</p>
+    </header>
+
+    <div class="calculator-layout">
+        <section class="inputs-panel">
+            <h2>Setup</h2>
+
+            <div class="input-group">
+                <h3>Telescope / Optics</h3>
+                <div class="field">
+                    <label for="focalLength">Focal length (mm)</label>
+                    <input id="focalLength" type="number" min="1" step="1" @bind="Input.BaseFocalLength" @bind:event="oninput" />
+                </div>
+                <div class="field">
+                    <label for="aperture">Aperture diameter (mm) <span class="optional">(optional)</span></label>
+                    <input id="aperture" type="number" min="1" step="1" @bind="Input.ApertureDiameter" @bind:event="oninput" />
+                </div>
+                <div class="field">
+                    <label for="reducer">Reducer factor</label>
+                    <input id="reducer" type="number" min="0.1" max="1.0" step="0.05" @bind="Input.ReducerFactor" @bind:event="oninput" />
+                </div>
+                <div class="field">
+                    <label for="barlow">Barlow factor</label>
+                    <input id="barlow" type="number" min="1.0" max="5.0" step="0.1" @bind="Input.BarlowFactor" @bind:event="oninput" />
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h3>Camera / Sensor</h3>
+                <div class="field">
+                    <label for="pixelSize">Pixel size (&micro;m)</label>
+                    <input id="pixelSize" type="number" min="0.1" step="0.01" @bind="Input.PixelSize" @bind:event="oninput" />
+                </div>
+                <div class="field">
+                    <label for="sensorWidth">Sensor width (px)</label>
+                    <input id="sensorWidth" type="number" min="1" step="1" @bind="Input.SensorWidthPx" @bind:event="oninput" />
+                </div>
+                <div class="field">
+                    <label for="sensorHeight">Sensor height (px)</label>
+                    <input id="sensorHeight" type="number" min="1" step="1" @bind="Input.SensorHeightPx" @bind:event="oninput" />
+                </div>
+                <div class="field">
+                    <label for="binning">Binning</label>
+                    <select id="binning" @bind="Input.Binning" @bind:event="oninput">
+                        <option value="1">1&times;1</option>
+                        <option value="2">2&times;2</option>
+                        <option value="3">3&times;3</option>
+                        <option value="4">4&times;4</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <h3>Seeing</h3>
+                <div class="field">
+                    <label for="seeing">Seeing (arcsec)</label>
+                    <input id="seeing" type="number" min="0.1" step="0.1" @bind="Input.Seeing" @bind:event="oninput" />
+                </div>
+                <div class="seeing-presets">
+                    <button class="preset-btn" @onclick='() => Input.Seeing = 1.5'>Excellent (1.5″)</button>
+                    <button class="preset-btn" @onclick='() => Input.Seeing = 2.0'>Average (2.0″)</button>
+                    <button class="preset-btn" @onclick='() => Input.Seeing = 3.0'>Poor (3.0″)</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="results-panel">
+            <h2>Results</h2>
+
+            @{ var result = Calculator.Calculate(Input); }
+
+            <div class="result-card status-card status-@result.Status.ToString().ToLower()">
+                <span class="status-badge">@FormatStatus(result.Status)</span>
+                <p class="status-description">@FormatStatusDescription(result)</p>
+            </div>
+
+            <div class="result-card">
+                <div class="metric">
+                    <span class="metric-label">Pixel Scale</span>
+                    <span class="metric-value">@result.PixelScale.ToString("F2") ″/px</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Optimal Range</span>
+                    <span class="metric-value">@result.OptimalRangeMin.ToString("F2") – @result.OptimalRangeMax.ToString("F2") ″/px</span>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="metric">
+                    <span class="metric-label">Field of View</span>
+                    <span class="metric-value">@result.FovWidthArcmin.ToString("F1")′ &times; @result.FovHeightArcmin.ToString("F1")′</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">FOV (degrees)</span>
+                    <span class="metric-value">@result.FovWidthDeg.ToString("F3")° &times; @result.FovHeightDeg.ToString("F3")°</span>
+                </div>
+            </div>
+
+            <div class="result-card">
+                <div class="metric">
+                    <span class="metric-label">Effective Focal Length</span>
+                    <span class="metric-value">@result.EffectiveFocalLength.ToString("F0") mm</span>
+                </div>
+                @if (result.FRatio.HasValue)
+                {
+                    <div class="metric">
+                        <span class="metric-label">f-ratio</span>
+                        <span class="metric-value">f/@result.FRatio.Value.ToString("F1")</span>
+                    </div>
+                }
+                @if (result.DawesLimitArcsec.HasValue)
+                {
+                    <div class="metric">
+                        <span class="metric-label">Dawes Limit</span>
+                        <span class="metric-value">@result.DawesLimitArcsec.Value.ToString("F2")″</span>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+</div>
+
+@code {
+    private CalculatorInput Input { get; set; } = new();
+    private SamplingCalculatorService Calculator { get; set; } = new();
+
+    private string FormatStatus(SamplingStatus status) => status switch
+    {
+        SamplingStatus.Undersampled => "Undersampled",
+        SamplingStatus.Optimal => "Optimal",
+        SamplingStatus.Oversampled => "Oversampled",
+        _ => "Unknown"
+    };
+
+    private string FormatStatusDescription(CalculatorResult result) => result.Status switch
+    {
+        SamplingStatus.Undersampled =>
+            $"Your setup is likely undersampled for {Input.Seeing:F1}″ seeing. Pixel scale ({result.PixelScale:F2}″/px) is above the optimal range.",
+        SamplingStatus.Optimal =>
+            $"Your setup is well matched for {Input.Seeing:F1}″ seeing.",
+        SamplingStatus.Oversampled =>
+            $"Your setup is likely oversampled for {Input.Seeing:F1}″ seeing. Pixel scale ({result.PixelScale:F2}″/px) is below the optimal range.",
+        _ => ""
+    };
+}

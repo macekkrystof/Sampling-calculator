@@ -156,7 +156,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 1,
     "title": "Scaffold Blazor WASM app + basic project structure",
     "description": "Create a Blazor WebAssembly app with a clean folder structure (Pages, Components, Services, Models). Add a minimal home page shell with Inputs and Results sections. Verify with dotnet build.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 2,

@@ -1,0 +1,20 @@
+## Iteration 1 - Scaffold Blazor WASM app + basic project structure
+- What was implemented:
+  - Created Blazor WebAssembly (.NET 10) project in src/SamplingCalculator
+  - Created xUnit test project in tests/SamplingCalculator.Tests
+  - Created solution file (SamplingCalculator.slnx)
+  - Added Models: CalculatorInput, CalculatorResult, SamplingStatus enum
+  - Added Services: SamplingCalculatorService with core formulas (pixel scale, FOV, sampling classification, Dawes limit, f-ratio)
+  - Built Home.razor page with Inputs panel (telescope, camera, seeing) and Results panel (pixel scale, FOV, status badge, metrics)
+  - Added dark-themed CSS (app.css) with responsive 2-column layout
+  - Simplified MainLayout (removed sidebar/nav), removed template pages (Counter, Weather)
+  - Wrote 14 unit tests covering all calculation formulas and edge cases
+- Files changed:
+  - SamplingCalculator.slnx (new)
+  - src/SamplingCalculator/ (new project with Models/, Services/, Pages/, Components/, Layout/)
+  - tests/SamplingCalculator.Tests/ (new test project)
+- Learnings for future iterations:
+  - .NET 10 uses .slnx format (not .sln) by default
+  - Blazor WASM template includes Counter/Weather pages that should be removed
+  - FOV calculation uses unbinned sensor resolution (physical pixels on sensor)
+---
