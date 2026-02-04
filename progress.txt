@@ -18,3 +18,22 @@
   - Blazor WASM template includes Counter/Weather pages that should be removed
   - FOV calculation uses unbinned sensor resolution (physical pixels on sensor)
 ---
+
+## Iteration 2 - Implement calculation engine with unit-tested formulas
+- What was implemented:
+  - Reviewed existing calculation engine (effective focal length, pixel scale, FOV, Dawes limit, f-ratio) — already complete from iteration 1
+  - Added 6 new unit tests for comprehensive coverage:
+    - Combined reducer + barlow effective focal length
+    - Binning 3x3 and 4x4 pixel scale
+    - FOV invariance under binning
+    - Pixel scale with reducer
+    - f-ratio with combined reducer + barlow
+  - Total: 20 tests, all passing
+- Files changed:
+  - tests/SamplingCalculator.Tests/UnitTest1.cs (added 6 tests)
+  - prd.md (marked task 2 as passes: true)
+- Learnings for future iterations:
+  - PRD formula `effectiveFocal = baseFocal * barlowFactor / reducerFactor` treats reducer as divisor (0.7x reducer gives LONGER focal length, which is inverted from physical reality — but matches PRD spec)
+  - FOV is binning-invariant (binning cancels out in the formula) — good property to test
+  - Calculation engine was already feature-complete from iteration 1; Task 2 mainly needed test coverage expansion
+---

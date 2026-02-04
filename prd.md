@@ -162,7 +162,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 2,
     "title": "Implement calculation engine with unit-tested formulas",
     "description": "Create a pure C# calculator library/class that computes effective focal length, pixel scale (arcsec/px), and FOV (deg + arcmin). Add xUnit tests for representative cases, including binning and reducer/barlow effects. Verify with dotnet test.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 3,

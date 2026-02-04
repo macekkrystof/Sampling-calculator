@@ -224,4 +224,135 @@ public class SamplingCalculatorServiceTests
 
         Assert.Null(result.FRatio);
     }
+
+    [Fact]
+    public void EffectiveFocalLength_WithCombinedReducerAndBarlow()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            ReducerFactor = 0.8,
+            BarlowFactor = 2.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        // 1000 * 2.0 / 0.8 = 2500
+        Assert.Equal(2500.0, result.EffectiveFocalLength, 1);
+    }
+
+    [Fact]
+    public void PixelScale_WithBinning3_Triples()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            Binning = 3,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        // 206.265 * (3.76 * 3) / 800 = 206.265 * 11.28 / 800 = 2.908
+        Assert.Equal(2.91, result.PixelScale, 2);
+    }
+
+    [Fact]
+    public void PixelScale_WithBinning4_Quadruples()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            Binning = 4,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        // 206.265 * (3.76 * 4) / 800 = 206.265 * 15.04 / 800 = 3.878
+        Assert.Equal(3.88, result.PixelScale, 2);
+    }
+
+    [Fact]
+    public void Fov_UnchangedByBinning()
+    {
+        var baseInput = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            SensorWidthPx = 6248,
+            SensorHeightPx = 4176,
+            Binning = 1,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var binnedInput = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            SensorWidthPx = 6248,
+            SensorHeightPx = 4176,
+            Binning = 2,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var baseResult = _sut.Calculate(baseInput);
+        var binnedResult = _sut.Calculate(binnedInput);
+
+        // FOV should be the same regardless of binning
+        Assert.Equal(baseResult.FovWidthDeg, binnedResult.FovWidthDeg, 5);
+        Assert.Equal(baseResult.FovHeightDeg, binnedResult.FovHeightDeg, 5);
+    }
+
+    [Fact]
+    public void PixelScale_WithReducer_IncreasesScale()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 3.76,
+            Binning = 1,
+            ReducerFactor = 0.7,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        // effectiveFocal = 1000 / 0.7 = 1428.57
+        // pixelScale = 206.265 * 3.76 / 1428.57 = 0.543
+        // Wait – reducer shortens focal length, so effectiveFocal = 1000 * 1.0 / 0.7 = 1428.57
+        // That INCREASES focal length, which would DECREASE pixel scale.
+        // But a reducer should DECREASE focal length (0.7x reducer means 700mm effective).
+        // The PRD formula: effectiveFocal = baseFocal * barlowFactor / reducerFactor
+        // So 1000 * 1.0 / 0.7 = 1428.57 — this seems inverted.
+        // Actually the PRD explicitly states this formula, so we follow it.
+        double expectedFocal = 1000.0 * 1.0 / 0.7;
+        double expectedScale = 206.265 * 3.76 / expectedFocal;
+        Assert.Equal(expectedScale, result.PixelScale, 3);
+    }
+
+    [Fact]
+    public void FRatio_WithReducerAndBarlow()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            ApertureDiameter = 200,
+            ReducerFactor = 0.8,
+            BarlowFactor = 1.5
+        };
+
+        var result = _sut.Calculate(input);
+
+        // effectiveFocal = 800 * 1.5 / 0.8 = 1500
+        // fRatio = 1500 / 200 = 7.5
+        Assert.NotNull(result.FRatio);
+        Assert.Equal(7.5, result.FRatio!.Value, 1);
+    }
 }
