@@ -3,6 +3,7 @@
     <Project Path="src/SamplingCalculator/SamplingCalculator.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/SamplingCalculator.Playwright/SamplingCalculator.Playwright.csproj" />
     <Project Path="tests/SamplingCalculator.Tests/SamplingCalculator.Tests.csproj" />
   </Folder>
 </Solution>

@@ -1,0 +1,70 @@
+@namespace SamplingCalculator.Components
+@using SamplingCalculator.Services
+
+<div class="field @(Validation is { IsValid: false } ? "field-error" : "")">
+    <label for="@Id">
+        @Label
+        @if (!string.IsNullOrEmpty(Unit))
+        {
+            <span class="unit-label">(@Unit)</span>
+        }
+        @if (IsOptional)
+        {
+            <span class="optional">(optional)</span>
+        }
+        @if (!string.IsNullOrEmpty(Tooltip))
+        {
+            <span class="tooltip-icon" title="@Tooltip">?</span>
+        }
+    </label>
+    <input id="@Id"
+           type="number"
+           min="@Min"
+           max="@Max"
+           step="@Step"
+           value="@Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+           @oninput="OnInput"
+           aria-describedby="@(Id + "-error")"
+           aria-invalid="@(Validation is { IsValid: false } ? "true" : null)" />
+    @if (Validation is { IsValid: false })
+    {
+        <span id="@(Id + "-error")" class="field-error-message" role="alert">@Validation.ErrorMessage</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string? Unit { get; set; }
+    [Parameter] public string? Tooltip { get; set; }
+    [Parameter] public bool IsOptional { get; set; }
+    [Parameter] public double Value { get; set; }
+    [Parameter] public EventCallback<double> ValueChanged { get; set; }
+    [Parameter] public string Min { get; set; } = "";
+    [Parameter] public string Max { get; set; } = "";
+    [Parameter] public string Step { get; set; } = "1";
+    [Parameter] public Func<double, ValidationResult>? Validate { get; set; }
+
+    private ValidationResult? Validation { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (Validate is not null)
+        {
+            Validation = Validate(Value);
+        }
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        if (double.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+        {
+            Value = parsed;
+            if (Validate is not null)
+            {
+                Validation = Validate(parsed);
+            }
+            await ValueChanged.InvokeAsync(parsed);
+        }
+    }
+}

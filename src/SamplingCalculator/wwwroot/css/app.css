@@ -142,6 +142,79 @@ h1:focus {
     color: var(--text-primary);
 }
 
+.preset-btn.preset-active {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(88, 166, 255, 0.1);
+}
+
+/* Validation */
+.field-error input {
+    border-color: var(--status-over);
+}
+
+.field-error input:focus {
+    border-color: var(--status-over);
+    box-shadow: 0 0 0 2px rgba(248, 81, 73, 0.25);
+}
+
+.field-error-message {
+    display: block;
+    color: var(--status-over);
+    font-size: 0.78rem;
+    margin-top: 0.25rem;
+}
+
+.validation-warning-card {
+    text-align: center;
+    border-color: var(--status-under);
+}
+
+.validation-warning-card p {
+    color: var(--status-under);
+    margin: 0;
+}
+
+/* Tooltips */
+.tooltip-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--border);
+    color: var(--text-secondary);
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: help;
+    vertical-align: middle;
+    margin-left: 0.3rem;
+    position: relative;
+}
+
+.unit-label {
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+}
+
+/* Recommendations */
+.recommendations-card {
+    border-color: var(--accent);
+}
+
+.recommendation {
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    margin: 0.5rem 0 0;
+}
+
+.warning {
+    color: var(--status-under);
+    font-size: 0.88rem;
+    margin: 0.5rem 0 0;
+}
+
 .result-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border);

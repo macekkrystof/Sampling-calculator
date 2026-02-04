@@ -60,3 +60,33 @@
   - PRD formula `effectiveFocal = baseFocal * barlow / reducer` is inverted from physical reality; a 0.7× reducer INCREASES effective focal. Reducer recommendations for oversampled setups use focal ratio approach instead.
   - Boundary tests: at exact thresholds (seeing/2, seeing/3), the status should be Optimal (not strict inequality)
 ---
+
+## Iteration 4 - Build input form components with validation and sensible defaults
+- What was implemented:
+  - Created InputValidationService (static class) with validation methods for all input fields: focal length, aperture, reducer, barlow, pixel size, sensor dimensions, seeing
+  - Created reusable NumericInput.razor component with: label, unit display, optional marker, tooltip icon, validation error display, aria attributes for accessibility
+  - Refactored Home.razor to use NumericInput components instead of raw input elements
+  - Added validation-aware results: results panel hides and shows warning when inputs are invalid
+  - Added active state highlighting for seeing preset buttons
+  - Added CSS for validation error states (red border, error messages), tooltip icons, active preset button, recommendations card
+  - Fixed InvariantCulture rendering for numeric input values (needed for locales with comma decimal separator)
+  - Set up Playwright .NET test project (NUnit + Microsoft.Playwright.NUnit)
+  - Wrote 43 unit tests for InputValidationService (boundary conditions for all validators)
+  - Wrote 10 Playwright UI tests: defaults, presets, validation errors, binning, tooltips
+- Files changed:
+  - src/SamplingCalculator/Services/InputValidationService.cs (new)
+  - src/SamplingCalculator/Components/NumericInput.razor (new)
+  - src/SamplingCalculator/Pages/Home.razor (refactored to use NumericInput)
+  - src/SamplingCalculator/_Imports.razor (added Components namespace)
+  - src/SamplingCalculator/wwwroot/css/app.css (validation, tooltip, active preset styles)
+  - tests/SamplingCalculator.Tests/UnitTest1.cs (43 new validation tests, total 83)
+  - tests/SamplingCalculator.Playwright/ (new project, 10 UI tests)
+  - SamplingCalculator.slnx (added Playwright project)
+  - prd.md (marked task 4 as passes: true)
+- Learnings for future iterations:
+  - Blazor WASM renders numeric input `value` attribute using system culture; must use `.ToString(CultureInfo.InvariantCulture)` to ensure period decimal separator in HTML
+  - `using` directives in Razor components must be at the top level (`@using`), not inside `@code {}` blocks
+  - Playwright tests for Blazor WASM need `WaitUntilState.NetworkIdle` + explicit wait for rendered element due to .NET runtime download time
+  - Result display values (ToString("F2")) still use system locale (comma decimals) — acceptable for user display but worth noting
+  - Playwright NUnit base class `PageTest` handles browser/page lifecycle automatically
+---

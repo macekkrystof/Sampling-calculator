@@ -701,3 +701,129 @@ public class SamplingCalculatorServiceTests
         Assert.Equal(expectedMax, result.OptimalRangeMax, 2);
     }
 }
+
+// --- Task 4: Input validation tests ---
+
+public class InputValidationServiceTests
+{
+    // Focal length
+    [Theory]
+    [InlineData(800, true)]
+    [InlineData(1, true)]
+    [InlineData(50000, true)]
+    [InlineData(0, false)]
+    [InlineData(-1, false)]
+    [InlineData(50001, false)]
+    public void ValidateFocalLength(double value, bool expectedValid)
+    {
+        var result = InputValidationService.ValidateFocalLength(value);
+        Assert.Equal(expectedValid, result.IsValid);
+    }
+
+    // Aperture (optional)
+    [Fact]
+    public void ValidateAperture_Null_IsValid()
+    {
+        var result = InputValidationService.ValidateAperture(null);
+        Assert.True(result.IsValid);
+    }
+
+    [Theory]
+    [InlineData(200, true)]
+    [InlineData(1, true)]
+    [InlineData(10000, true)]
+    [InlineData(0, false)]
+    [InlineData(-1, false)]
+    [InlineData(10001, false)]
+    public void ValidateAperture(double value, bool expectedValid)
+    {
+        var result = InputValidationService.ValidateAperture(value);
+        Assert.Equal(expectedValid, result.IsValid);
+    }
+
+    // Reducer factor
+    [Theory]
+    [InlineData(1.0, true)]
+    [InlineData(0.7, true)]
+    [InlineData(0.1, true)]
+    [InlineData(0.09, false)]
+    [InlineData(1.1, false)]
+    public void ValidateReducerFactor(double value, bool expectedValid)
+    {
+        var result = InputValidationService.ValidateReducerFactor(value);
+        Assert.Equal(expectedValid, result.IsValid);
+    }
+
+    // Barlow factor
+    [Theory]
+    [InlineData(1.0, true)]
+    [InlineData(2.0, true)]
+    [InlineData(5.0, true)]
+    [InlineData(0.9, false)]
+    [InlineData(5.1, false)]
+    public void ValidateBarlowFactor(double value, bool expectedValid)
+    {
+        var result = InputValidationService.ValidateBarlowFactor(value);
+        Assert.Equal(expectedValid, result.IsValid);
+    }
+
+    // Pixel size
+    [Theory]
+    [InlineData(3.76, true)]
+    [InlineData(0.01, true)]
+    [InlineData(50, true)]
+    [InlineData(0, false)]
+    [InlineData(-1, false)]
+    [InlineData(51, false)]
+    public void ValidatePixelSize(double value, bool expectedValid)
+    {
+        var result = InputValidationService.ValidatePixelSize(value);
+        Assert.Equal(expectedValid, result.IsValid);
+    }
+
+    // Sensor dimension
+    [Theory]
+    [InlineData(6248, true)]
+    [InlineData(1, true)]
+    [InlineData(100000, true)]
+    [InlineData(0, false)]
+    [InlineData(-1, false)]
+    [InlineData(100001, false)]
+    public void ValidateSensorDimension(int value, bool expectedValid)
+    {
+        var result = InputValidationService.ValidateSensorDimension(value);
+        Assert.Equal(expectedValid, result.IsValid);
+    }
+
+    // Seeing
+    [Theory]
+    [InlineData(2.0, true)]
+    [InlineData(0.1, true)]
+    [InlineData(20, true)]
+    [InlineData(0, false)]
+    [InlineData(-1, false)]
+    [InlineData(21, false)]
+    public void ValidateSeeing(double value, bool expectedValid)
+    {
+        var result = InputValidationService.ValidateSeeing(value);
+        Assert.Equal(expectedValid, result.IsValid);
+    }
+
+    // Error messages present when invalid
+    [Fact]
+    public void InvalidResult_HasErrorMessage()
+    {
+        var result = InputValidationService.ValidateFocalLength(0);
+        Assert.False(result.IsValid);
+        Assert.NotNull(result.ErrorMessage);
+        Assert.NotEmpty(result.ErrorMessage);
+    }
+
+    [Fact]
+    public void ValidResult_HasNoErrorMessage()
+    {
+        var result = InputValidationService.ValidateFocalLength(800);
+        Assert.True(result.IsValid);
+        Assert.Null(result.ErrorMessage);
+    }
+}

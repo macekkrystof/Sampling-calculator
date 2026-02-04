@@ -38,3 +38,15 @@
 - Fixed reducer recommendation logic for PRD's inverted formula
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test SamplingCalculator.slnx
 - Result: Build succeeds, 40/40 tests pass
+
+### 2026-02-04 – Iteration 4: Build input form components with validation and sensible defaults
+- Task: Build input form components with validation and sensible defaults (Task #4)
+- Created InputValidationService with validation for all fields (focal length, aperture, reducer, barlow, pixel size, sensor dimensions, seeing)
+- Created reusable NumericInput.razor component (label, unit, tooltip, validation, aria attributes)
+- Refactored Home.razor to use NumericInput, added validation-aware results panel
+- Added CSS for validation errors, tooltips, active preset buttons
+- Fixed InvariantCulture value rendering for number inputs
+- Set up Playwright .NET test project, wrote 10 UI tests
+- Added 43 unit tests for validation logic
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
+- Result: Build succeeds, 83/83 unit tests pass, 10/10 Playwright UI tests pass

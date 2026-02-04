@@ -174,7 +174,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 4,
     "title": "Build input form components with validation and sensible defaults",
     "description": "Create reusable input components (numeric with units, select for binning, toggles for reducer/barlow). Add validation (non-negative, non-zero focal length, reasonable ranges) and inline helper tooltips.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 5,
