@@ -46,10 +46,15 @@
     [Parameter] public Func<double, ValidationResult>? Validate { get; set; }
 
     private ValidationResult? Validation { get; set; }
+    private bool _hasParseError;
 
     protected override void OnParametersSet()
     {
-        if (Validate is not null)
+        if (_hasParseError)
+        {
+            Validation = ValidationResult.Error("Please enter a valid number.");
+        }
+        else if (Validate is not null)
         {
             Validation = Validate(Value);
         }
@@ -57,14 +62,40 @@
 
     private async Task OnInput(ChangeEventArgs e)
     {
-        if (double.TryParse(e.Value?.ToString(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+        var inputValue = e.Value?.ToString();
+
+        // Handle empty input for optional fields
+        if (string.IsNullOrWhiteSpace(inputValue))
         {
+            if (IsOptional)
+            {
+                _hasParseError = false;
+                Value = 0;
+                Validation = ValidationResult.Valid();
+                await ValueChanged.InvokeAsync(0);
+            }
+            else
+            {
+                _hasParseError = true;
+                Validation = ValidationResult.Error("This field is required.");
+            }
+            return;
+        }
+
+        if (double.TryParse(inputValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+        {
+            _hasParseError = false;
             Value = parsed;
             if (Validate is not null)
             {
                 Validation = Validate(parsed);
             }
             await ValueChanged.InvokeAsync(parsed);
+        }
+        else
+        {
+            _hasParseError = true;
+            Validation = ValidationResult.Error("Please enter a valid number.");
         }
     }
 }

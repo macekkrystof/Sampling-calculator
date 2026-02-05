@@ -271,3 +271,69 @@
   - aria-hidden="true" for purely decorative elements like backgrounds
   - Starfield animation performance is good with transform (GPU-accelerated)
 ---
+
+## Iteration 11 - SEO a metadata (Task 10)
+- What was implemented:
+  - Added comprehensive SEO metadata to index.html:
+    - Primary meta tags: title, description, keywords, author, robots, theme-color
+    - Open Graph tags for Facebook/social sharing: og:type, og:url, og:title, og:description, og:image, og:locale
+    - Twitter Card tags: twitter:card, twitter:url, twitter:title, twitter:description, twitter:image
+  - Created PWA manifest.json with:
+    - App name, short name, description
+    - Theme colors matching dark astronomical theme (#0d1117)
+    - Icon references (SVG, PNG 32x32, PNG 192x192)
+    - Categories: utilities, education
+  - Created astronomical-themed SVG favicon:
+    - Dark space background with accent blue border
+    - Stars decoration
+    - Crosshair/reticle design representing sampling/pixel grid
+    - Corner pixel grid indicators
+    - Center focal point
+  - Updated PageTitle in Home.razor to match SEO title
+  - Added Apple PWA meta tags (apple-mobile-web-app-capable, apple-touch-icon, etc.)
+  - Added proper lang="en" attribute (already present on html element)
+- Files changed:
+  - src/SamplingCalculator/wwwroot/index.html (SEO metadata, PWA tags)
+  - src/SamplingCalculator/wwwroot/favicon.svg (new - astronomical motif)
+  - src/SamplingCalculator/wwwroot/manifest.json (new - PWA manifest)
+  - src/SamplingCalculator/Pages/Home.razor (updated PageTitle)
+  - tests/SamplingCalculator.Playwright/UnitTest1.cs (15 new SEO tests)
+  - prd.md (marked task 10 as passes: true)
+- Test results:
+  - Unit tests: 132/132 passing
+  - Playwright tests: 108/108 passing (15 new SEO/metadata tests)
+- Learnings for future iterations:
+  - Blazor's <PageTitle> component overrides the HTML <title> tag dynamically
+  - SVG favicons are well-supported and allow for crisp astronomical designs
+  - manifest.json needs proper icon references with sizes and types
+  - Open Graph and Twitter cards enable rich social media sharing
+  - theme-color meta tag affects mobile browser chrome color
+---
+
+## Iteration 12 - Error handling a edge cases (Task #11)
+- What was verified/implemented:
+  - Reviewed existing error handling implementation - already comprehensive from previous iterations
+  - InputValidationService validates all fields: focal length, aperture, reducer, barlow, pixel size, sensor dimensions, seeing
+  - Handles NaN, Infinity, negative values, zero values, and out-of-range values
+  - SamplingCalculatorService has CreateFallbackResult for error handling, guards against division by zero
+  - NumericInput.razor shows inline validation errors with red styling and ARIA attributes
+  - ResultsPanel.razor displays validation-warning-card and calculation-error-card appropriately
+  - URL state decoding gracefully falls back to defaults for invalid parameters
+  - Error handling tests already existed: ErrorHandlingTests (18 tests), ValidationEdgeCaseTests (17 tests)
+- Files verified:
+  - src/SamplingCalculator/Services/InputValidationService.cs (validation for all fields)
+  - src/SamplingCalculator/Services/SamplingCalculatorService.cs (error handling with fallback)
+  - src/SamplingCalculator/Models/CalculatorResult.cs (HasError, ErrorMessage properties)
+  - src/SamplingCalculator/Components/NumericInput.razor (inline error display)
+  - src/SamplingCalculator/Components/ResultsPanel.razor (error cards)
+  - src/SamplingCalculator/wwwroot/css/app.css (error styling)
+  - tests/SamplingCalculator.Tests/UnitTest1.cs (35+ error handling tests)
+- Test results:
+  - Unit tests: 166/166 passing
+  - Playwright tests: 108/108 passing
+- Status: COMPLETED - Task 11 was already implemented; marked as passes: true
+- Learnings for future iterations:
+  - Error handling should be built incrementally with each feature, not as a separate task
+  - Task 11 requirements were satisfied by previous iterations' implementations
+  - Visual verification confirms graceful fallback for invalid URL parameters
+---

@@ -359,6 +359,23 @@ a:focus-visible {
     margin: 0;
 }
 
+/* Calculation error card */
+.calculation-error-card {
+    text-align: center;
+    border-color: var(--status-over);
+    background: rgba(248, 81, 73, 0.1);
+}
+
+.calculation-error-card .card-heading {
+    color: var(--status-over);
+}
+
+.calculation-error-card .error-message {
+    color: var(--text-primary);
+    margin: 0.5rem 0 0 0;
+    font-size: 0.9rem;
+}
+
 /* Tooltips */
 .tooltip-icon {
     display: inline-flex;

@@ -121,3 +121,27 @@
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
 - Result: Build succeeds, 132/132 unit tests pass, 93/93 Playwright UI tests pass
 - Visual verification: dark astronomical theme with glassmorphism cards, starfield background
+
+### 2026-02-05 – Iteration 11: SEO a metadata (Task #10)
+- Task: SEO a metadata (Task #10)
+- Added comprehensive SEO metadata to index.html: primary meta tags, Open Graph tags, Twitter Cards
+- Created PWA manifest.json for installable web app support
+- Created astronomical-themed SVG favicon with crosshair/reticle design
+- Updated PageTitle component to match SEO title
+- Added Apple PWA meta tags for iOS support
+- 15 new Playwright UI tests for SEO/metadata verification
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright
+- Result: Build succeeds, 132/132 unit tests pass, 108/108 Playwright UI tests pass
+- Visual verification: favicon.svg and manifest.json accessible via HTTP
+
+### 2026-02-05 – Iteration 12: Error handling a edge cases (Task #11)
+- Task: Error handling a edge cases (Task #11)
+- Reviewed existing implementation - error handling was already comprehensive from previous iterations
+- Verified InputValidationService validates all fields (NaN, Infinity, negative, zero, out-of-range)
+- Verified SamplingCalculatorService has fallback error handling
+- Verified UI components display validation errors and calculation errors correctly
+- Verified URL state decoding gracefully falls back to defaults
+- Confirmed 35+ error handling unit tests already exist
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
+- Result: Build succeeds, 166/166 unit tests pass, 108/108 Playwright UI tests pass
+- Visual verification: application handles invalid inputs gracefully, URL parameter validation works

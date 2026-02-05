@@ -216,7 +216,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 11,
     "title": "Error handling a edge cases",
     "description": "Implementovat robustní error handling: validace vstupů (žádné záporné hodnoty, rozumné rozsahy), graceful handling neplatných kombinací, user-friendly error messages, fallback hodnoty pro edge cases.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 12,

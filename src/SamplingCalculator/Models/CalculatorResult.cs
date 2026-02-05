@@ -14,6 +14,12 @@ public class CalculatorResult
     public double OptimalRangeMin { get; set; }
     public double OptimalRangeMax { get; set; }
 
+    /// <summary>Indicates whether the calculation failed due to invalid inputs.</summary>
+    public bool HasError { get; set; }
+
+    /// <summary>Error message when calculation fails (null when successful).</summary>
+    public string? ErrorMessage { get; set; }
+
     /// <summary>Summary sentence, e.g. "Your setup is likely oversampled for 2.0″ seeing."</summary>
     public string StatusMessage { get; set; } = string.Empty;
 

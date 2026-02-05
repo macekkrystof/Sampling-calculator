@@ -10,6 +10,22 @@ public class SamplingCalculatorService
         var effectiveFocal = input.EffectiveFocalLength;
         var effectivePixelSize = input.PixelSize * input.Binning;
 
+        // Guard against division by zero or invalid inputs
+        if (effectiveFocal <= 0 || !double.IsFinite(effectiveFocal))
+        {
+            return CreateFallbackResult("Invalid effective focal length. Check your focal length, reducer, and barlow values.");
+        }
+
+        if (effectivePixelSize <= 0 || !double.IsFinite(effectivePixelSize))
+        {
+            return CreateFallbackResult("Invalid pixel size or binning value.");
+        }
+
+        if (input.Seeing <= 0 || !double.IsFinite(input.Seeing))
+        {
+            return CreateFallbackResult("Invalid seeing value. Must be greater than 0.");
+        }
+
         var pixelScale = 206.265 * effectivePixelSize / effectiveFocal;
 
         var fovWidthDeg = (pixelScale * input.SensorWidthPx / input.Binning) / 3600.0;
@@ -125,7 +141,27 @@ public class SamplingCalculatorService
             BinningRecommendation = binningRecommendation,
             CorrectorRecommendation = correctorRecommendation,
             RecommendedCorrectorFactor = recommendedCorrectorFactor,
-            ExtremeWarning = extremeWarning
+            ExtremeWarning = extremeWarning,
+            HasError = false,
+            ErrorMessage = null
+        };
+    }
+
+    private static CalculatorResult CreateFallbackResult(string errorMessage)
+    {
+        return new CalculatorResult
+        {
+            HasError = true,
+            ErrorMessage = errorMessage,
+            PixelScale = 0,
+            FovWidthDeg = 0,
+            FovHeightDeg = 0,
+            FovWidthArcmin = 0,
+            FovHeightArcmin = 0,
+            EffectiveFocalLength = 0,
+            OptimalRangeMin = 0,
+            OptimalRangeMax = 0,
+            StatusMessage = errorMessage
         };
     }
 }

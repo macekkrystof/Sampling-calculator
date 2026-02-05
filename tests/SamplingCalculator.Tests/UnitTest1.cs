@@ -1522,3 +1522,409 @@ public class UrlStateServiceTests
         Assert.Contains("ap=", result);
     }
 }
+
+// --- Task 11: Error handling and edge cases tests ---
+
+public class ErrorHandlingTests
+{
+    private readonly SamplingCalculatorService _sut = new();
+
+    // Division by zero protection: ReducerFactor = 0 causes Infinity in EffectiveFocalLength
+    [Fact]
+    public void Calculate_ReducerFactorZero_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            ReducerFactor = 0, // This would cause division by zero
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.NotNull(result.ErrorMessage);
+        Assert.Contains("focal", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Negative focal length
+    [Fact]
+    public void Calculate_NegativeFocalLength_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = -100,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.NotNull(result.ErrorMessage);
+    }
+
+    // Zero focal length
+    [Fact]
+    public void Calculate_ZeroFocalLength_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.NotNull(result.ErrorMessage);
+    }
+
+    // Zero pixel size
+    [Fact]
+    public void Calculate_ZeroPixelSize_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.NotNull(result.ErrorMessage);
+        Assert.Contains("pixel", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Negative pixel size
+    [Fact]
+    public void Calculate_NegativePixelSize_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = -3.76,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.NotNull(result.ErrorMessage);
+    }
+
+    // Zero seeing
+    [Fact]
+    public void Calculate_ZeroSeeing_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            Seeing = 0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.NotNull(result.ErrorMessage);
+        Assert.Contains("seeing", result.ErrorMessage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // Negative seeing
+    [Fact]
+    public void Calculate_NegativeSeeing_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            Seeing = -2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.NotNull(result.ErrorMessage);
+    }
+
+    // Valid input should not have error
+    [Fact]
+    public void Calculate_ValidInput_HasNoError()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            Seeing = 2.0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.False(result.HasError);
+        Assert.Null(result.ErrorMessage);
+    }
+
+    // NaN focal length
+    [Fact]
+    public void Calculate_NaNFocalLength_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = double.NaN,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+    }
+
+    // Infinity focal length
+    [Fact]
+    public void Calculate_InfinityFocalLength_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = double.PositiveInfinity,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+    }
+
+    // NaN pixel size
+    [Fact]
+    public void Calculate_NaNPixelSize_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = double.NaN,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+    }
+
+    // NaN seeing
+    [Fact]
+    public void Calculate_NaNSeeing_ReturnsErrorResult()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 800,
+            PixelSize = 3.76,
+            Seeing = double.NaN,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+    }
+
+    // Error result has meaningful status message
+    [Fact]
+    public void Calculate_OnError_StatusMessageContainsError()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.False(string.IsNullOrEmpty(result.StatusMessage));
+    }
+
+    // Error result has zero/default values for metrics
+    [Fact]
+    public void Calculate_OnError_MetricsAreZero()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 0,
+            ReducerFactor = 1.0,
+            BarlowFactor = 1.0
+        };
+
+        var result = _sut.Calculate(input);
+
+        Assert.True(result.HasError);
+        Assert.Equal(0, result.PixelScale);
+        Assert.Equal(0, result.FovWidthDeg);
+        Assert.Equal(0, result.FovHeightDeg);
+    }
+}
+
+// --- Task 11: Input validation edge case tests ---
+
+public class ValidationEdgeCaseTests
+{
+    // NaN values
+    [Fact]
+    public void ValidateFocalLength_NaN_IsInvalid()
+    {
+        var result = InputValidationService.ValidateFocalLength(double.NaN);
+        Assert.False(result.IsValid);
+        Assert.Contains("Invalid", result.ErrorMessage);
+    }
+
+    [Fact]
+    public void ValidateFocalLength_PositiveInfinity_IsInvalid()
+    {
+        var result = InputValidationService.ValidateFocalLength(double.PositiveInfinity);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateFocalLength_NegativeInfinity_IsInvalid()
+    {
+        var result = InputValidationService.ValidateFocalLength(double.NegativeInfinity);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidatePixelSize_NaN_IsInvalid()
+    {
+        var result = InputValidationService.ValidatePixelSize(double.NaN);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidatePixelSize_PositiveInfinity_IsInvalid()
+    {
+        var result = InputValidationService.ValidatePixelSize(double.PositiveInfinity);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateReducerFactor_NaN_IsInvalid()
+    {
+        var result = InputValidationService.ValidateReducerFactor(double.NaN);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateBarlowFactor_NaN_IsInvalid()
+    {
+        var result = InputValidationService.ValidateBarlowFactor(double.NaN);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateSeeing_NaN_IsInvalid()
+    {
+        var result = InputValidationService.ValidateSeeing(double.NaN);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateSeeing_PositiveInfinity_IsInvalid()
+    {
+        var result = InputValidationService.ValidateSeeing(double.PositiveInfinity);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateAperture_NaN_IsInvalid()
+    {
+        var result = InputValidationService.ValidateAperture(double.NaN);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateAperture_PositiveInfinity_IsInvalid()
+    {
+        var result = InputValidationService.ValidateAperture(double.PositiveInfinity);
+        Assert.False(result.IsValid);
+    }
+
+    // Boundary tests for maximum values
+    [Fact]
+    public void ValidateFocalLength_AtMaximum_IsValid()
+    {
+        var result = InputValidationService.ValidateFocalLength(50000);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateFocalLength_JustAboveMaximum_IsInvalid()
+    {
+        var result = InputValidationService.ValidateFocalLength(50001);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidatePixelSize_AtMaximum_IsValid()
+    {
+        var result = InputValidationService.ValidatePixelSize(50);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidatePixelSize_JustAboveMaximum_IsInvalid()
+    {
+        var result = InputValidationService.ValidatePixelSize(50.01);
+        Assert.False(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateSeeing_AtMaximum_IsValid()
+    {
+        var result = InputValidationService.ValidateSeeing(20);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateSeeing_JustAboveMaximum_IsInvalid()
+    {
+        var result = InputValidationService.ValidateSeeing(20.01);
+        Assert.False(result.IsValid);
+    }
+
+    // Very small positive values (edge case near zero)
+    [Fact]
+    public void ValidateFocalLength_VerySmallPositive_IsValid()
+    {
+        var result = InputValidationService.ValidateFocalLength(0.001);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidatePixelSize_VerySmallPositive_IsValid()
+    {
+        var result = InputValidationService.ValidatePixelSize(0.001);
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateSeeing_VerySmallPositive_IsValid()
+    {
+        var result = InputValidationService.ValidateSeeing(0.001);
+        Assert.True(result.IsValid);
+    }
+}

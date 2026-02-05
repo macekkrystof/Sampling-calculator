@@ -13,6 +13,8 @@ public static class InputValidationService
 {
     public static ValidationResult ValidateFocalLength(double value)
     {
+        if (!double.IsFinite(value))
+            return ValidationResult.Error("Invalid number.");
         if (value <= 0)
             return ValidationResult.Error("Must be greater than 0.");
         if (value > 50000)
@@ -24,6 +26,8 @@ public static class InputValidationService
     {
         if (!value.HasValue)
             return ValidationResult.Valid(); // optional field
+        if (!double.IsFinite(value.Value))
+            return ValidationResult.Error("Invalid number.");
         if (value.Value <= 0)
             return ValidationResult.Error("Must be greater than 0.");
         if (value.Value > 10000)
@@ -33,6 +37,8 @@ public static class InputValidationService
 
     public static ValidationResult ValidateReducerFactor(double value)
     {
+        if (!double.IsFinite(value))
+            return ValidationResult.Error("Invalid number.");
         if (value < 0.1)
             return ValidationResult.Error("Minimum is 0.1×.");
         if (value > 1.0)
@@ -42,6 +48,8 @@ public static class InputValidationService
 
     public static ValidationResult ValidateBarlowFactor(double value)
     {
+        if (!double.IsFinite(value))
+            return ValidationResult.Error("Invalid number.");
         if (value < 1.0)
             return ValidationResult.Error("Barlow factor must be ≥ 1.0× (use Reducer for reduction).");
         if (value > 5.0)
@@ -51,6 +59,8 @@ public static class InputValidationService
 
     public static ValidationResult ValidatePixelSize(double value)
     {
+        if (!double.IsFinite(value))
+            return ValidationResult.Error("Invalid number.");
         if (value <= 0)
             return ValidationResult.Error("Must be greater than 0.");
         if (value > 50)
@@ -69,6 +79,8 @@ public static class InputValidationService
 
     public static ValidationResult ValidateSeeing(double value)
     {
+        if (!double.IsFinite(value))
+            return ValidationResult.Error("Invalid number.");
         if (value <= 0)
             return ValidationResult.Error("Must be greater than 0.");
         if (value > 20)

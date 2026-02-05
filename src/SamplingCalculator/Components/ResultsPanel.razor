@@ -15,6 +15,15 @@
     {
         var result = Calculator.Calculate(Input);
 
+        @if (result.HasError)
+        {
+            <div class="result-card calculation-error-card" role="alert" aria-live="polite">
+                <h3 class="card-heading">Calculation Error</h3>
+                <p class="error-message">@result.ErrorMessage</p>
+            </div>
+        }
+        else
+        {
         <div class="result-card status-card status-@result.Status.ToString().ToLower()" role="status" aria-live="polite">
             <span class="status-badge" aria-label="Sampling status: @FormatStatus(result.Status)">@FormatStatus(result.Status)</span>
             <p class="status-description">@result.StatusMessage</p>
@@ -85,6 +94,7 @@
                 </div>
             }
         </div>
+        }
     }
 </section>
 
