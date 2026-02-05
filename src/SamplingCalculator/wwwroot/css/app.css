@@ -1,14 +1,19 @@
 :root {
-    --bg-primary: #0d1117;
-    --bg-secondary: #161b22;
-    --bg-card: #1c2128;
+    --bg-primary: #0a0e14;
+    --bg-secondary: #12171f;
+    --bg-card: rgba(22, 27, 34, 0.7);
+    --bg-card-solid: #161b22;
     --text-primary: #e6edf3;
-    --text-secondary: #8b949e;
+    --text-secondary: #9ca3af;
     --accent: #58a6ff;
-    --border: #30363d;
+    --accent-glow: rgba(88, 166, 255, 0.3);
+    --border: rgba(48, 54, 61, 0.8);
+    --border-glass: rgba(255, 255, 255, 0.08);
     --status-optimal: #3fb950;
-    --status-under: #d29922;
+    --status-under: #f0b429;
     --status-over: #f85149;
+    --glass-bg: rgba(22, 27, 34, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
 }
 
 *, *::before, *::after {
@@ -24,6 +29,99 @@ html, body {
     min-height: 100vh;
 }
 
+/* Skip link for keyboard accessibility */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    background: var(--accent);
+    color: var(--bg-primary);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    z-index: 1000;
+    border-radius: 0 0 4px 0;
+    transition: top 0.2s;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: none;
+}
+
+/* Starfield background */
+.starfield {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+    background: radial-gradient(ellipse at bottom, #1a1f2e 0%, var(--bg-primary) 100%);
+}
+
+.starfield::before,
+.starfield::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    background-image:
+        radial-gradient(2px 2px at 20px 30px, #fff, transparent),
+        radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+        radial-gradient(2px 2px at 160px 120px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 230px 180px, #fff, transparent),
+        radial-gradient(2px 2px at 300px 50px, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 350px 220px, #fff, transparent),
+        radial-gradient(2px 2px at 420px 100px, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(1px 1px at 500px 270px, #fff, transparent),
+        radial-gradient(2px 2px at 550px 150px, rgba(255, 255, 255, 0.9), transparent),
+        radial-gradient(1px 1px at 620px 320px, #fff, transparent),
+        radial-gradient(2px 2px at 700px 80px, rgba(255, 255, 255, 0.7), transparent),
+        radial-gradient(1px 1px at 750px 250px, #fff, transparent),
+        radial-gradient(2px 2px at 820px 180px, rgba(255, 255, 255, 0.8), transparent),
+        radial-gradient(1px 1px at 900px 350px, #fff, transparent);
+    background-size: 950px 400px;
+    animation: starfield-drift 120s linear infinite;
+}
+
+.starfield::after {
+    background-image:
+        radial-gradient(1px 1px at 50px 100px, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 130px 200px, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 200px 50px, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(1px 1px at 280px 300px, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 380px 150px, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 450px 250px, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(1px 1px at 530px 80px, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 600px 350px, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 680px 200px, rgba(255, 255, 255, 0.6), transparent),
+        radial-gradient(1px 1px at 780px 100px, rgba(255, 255, 255, 0.4), transparent),
+        radial-gradient(1px 1px at 850px 280px, rgba(255, 255, 255, 0.5), transparent),
+        radial-gradient(1px 1px at 920px 150px, rgba(255, 255, 255, 0.4), transparent);
+    background-size: 1000px 450px;
+    animation: starfield-drift 180s linear infinite reverse;
+    opacity: 0.7;
+}
+
+@keyframes starfield-drift {
+    from {
+        transform: translateY(0) translateX(0);
+    }
+    to {
+        transform: translateY(-50%) translateX(-25%);
+    }
+}
+
+/* Subtle glow effect for heading */
+.calculator-container {
+    position: relative;
+}
+
 h1:focus {
     outline: none;
 }
@@ -36,17 +134,24 @@ h1:focus {
 
 .calculator-header {
     text-align: center;
-    padding: 2rem 0 1rem;
+    padding: 2.5rem 0 1.5rem;
 }
 
 .calculator-header h1 {
-    font-size: 1.8rem;
-    margin: 0 0 0.5rem;
+    font-size: 2rem;
+    margin: 0 0 0.6rem;
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.02em;
 }
 
 .calculator-header .subtitle {
     color: var(--text-secondary);
     margin: 0;
+    font-size: 0.95rem;
+    letter-spacing: 0.01em;
 }
 
 .calculator-layout {
@@ -99,11 +204,27 @@ h1:focus {
     }
 }
 
+/* Glassmorphism card styles */
 .inputs-panel, .results-panel {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
     padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.inputs-panel:hover, .results-panel:hover {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Fallback for browsers without backdrop-filter */
+@supports not (backdrop-filter: blur(12px)) {
+    .inputs-panel, .results-panel {
+        background: var(--bg-card-solid);
+    }
 }
 
 .inputs-panel h2, .results-panel h2 {
@@ -144,18 +265,34 @@ h1:focus {
 
 .field input, .field select {
     width: 100%;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
+    padding: 0.6rem 0.85rem;
+    background: rgba(18, 23, 31, 0.8);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-primary);
     font-size: 0.95rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .field input:focus, .field select:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+/* Enhanced focus states for accessibility */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
 .seeing-presets {
@@ -166,24 +303,33 @@ h1:focus {
 
 .preset-btn {
     flex: 1;
-    padding: 0.4rem 0.5rem;
-    background: var(--bg-secondary);
+    padding: 0.5rem 0.6rem;
+    background: rgba(18, 23, 31, 0.8);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-secondary);
     font-size: 0.8rem;
     cursor: pointer;
+    transition: all 0.2s ease;
 }
 
 .preset-btn:hover {
     border-color: var(--accent);
     color: var(--text-primary);
+    background: rgba(88, 166, 255, 0.08);
+}
+
+.preset-btn:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .preset-btn.preset-active {
     border-color: var(--accent);
     color: var(--accent);
-    background: rgba(88, 166, 255, 0.1);
+    background: rgba(88, 166, 255, 0.15);
+    box-shadow: 0 0 12px rgba(88, 166, 255, 0.15);
 }
 
 /* Validation */
@@ -287,11 +433,20 @@ h1:focus {
 }
 
 .result-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    background: rgba(18, 23, 31, 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@supports not (backdrop-filter: blur(8px)) {
+    .result-card {
+        background: var(--bg-secondary);
+    }
 }
 
 .status-card {
@@ -300,28 +455,43 @@ h1:focus {
 
 .status-badge {
     display: inline-block;
-    padding: 0.3rem 1rem;
+    padding: 0.4rem 1.25rem;
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.95rem;
+    animation: status-appear 0.3s ease-out;
+}
+
+@keyframes status-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .status-optimal .status-badge {
     background: rgba(63, 185, 80, 0.15);
     color: var(--status-optimal);
     border: 1px solid var(--status-optimal);
+    box-shadow: 0 0 20px rgba(63, 185, 80, 0.2);
 }
 
 .status-undersampled .status-badge {
-    background: rgba(210, 153, 34, 0.15);
+    background: rgba(240, 180, 41, 0.15);
     color: var(--status-under);
     border: 1px solid var(--status-under);
+    box-shadow: 0 0 20px rgba(240, 180, 41, 0.2);
 }
 
 .status-oversampled .status-badge {
     background: rgba(248, 81, 73, 0.15);
     color: var(--status-over);
     border: 1px solid var(--status-over);
+    box-shadow: 0 0 20px rgba(248, 81, 73, 0.2);
 }
 
 .status-description {
@@ -370,8 +540,9 @@ h1:focus {
 
 /* Primary metrics cards get highlighted */
 .primary-metrics-card {
-    border-color: var(--accent);
-    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(88, 166, 255, 0.05) 100%);
+    border-color: rgba(88, 166, 255, 0.4);
+    background: linear-gradient(135deg, rgba(18, 23, 31, 0.9) 0%, rgba(88, 166, 255, 0.08) 100%);
+    box-shadow: 0 4px 24px rgba(88, 166, 255, 0.1);
 }
 
 /* FOV primary metric */
@@ -488,10 +659,13 @@ h1:focus {
     justify-content: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
-    padding: 0.75rem 1rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    padding: 0.85rem 1.25rem;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .compare-toggle {
@@ -515,44 +689,46 @@ h1:focus {
 }
 
 .copy-btn {
-    padding: 0.4rem 0.75rem;
-    background: var(--bg-secondary);
+    padding: 0.5rem 0.85rem;
+    background: transparent;
     border: 1px solid var(--accent);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--accent);
     font-size: 0.85rem;
     cursor: pointer;
-    transition: background-color 0.15s, color 0.15s;
+    transition: all 0.2s ease;
 }
 
 .copy-btn:hover {
     background: var(--accent);
     color: var(--bg-primary);
+    box-shadow: 0 0 12px rgba(88, 166, 255, 0.3);
 }
 
-.copy-btn:focus {
+.copy-btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .share-btn {
-    padding: 0.4rem 0.75rem;
-    background: var(--bg-secondary);
+    padding: 0.5rem 0.85rem;
+    background: rgba(18, 23, 31, 0.8);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-primary);
     font-size: 0.85rem;
     cursor: pointer;
-    transition: background-color 0.15s, border-color 0.15s;
+    transition: all 0.2s ease;
 }
 
 .share-btn:hover {
     border-color: var(--accent);
+    background: rgba(88, 166, 255, 0.08);
 }
 
-.share-btn:focus {
+.share-btn:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .share-btn .share-success {
@@ -629,11 +805,14 @@ h1:focus {
 
 /* Presets panel */
 .presets-panel {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
     padding: 1.5rem;
     margin-bottom: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
 .presets-panel h2 {
@@ -665,49 +844,58 @@ h1:focus {
 .preset-save-row input[type="text"] {
     flex: 1;
     min-width: 120px;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
+    padding: 0.55rem 0.85rem;
+    background: rgba(18, 23, 31, 0.8);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-primary);
     font-size: 0.9rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .preset-save-row input[type="text"]:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .preset-save-row select {
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
+    padding: 0.55rem 0.85rem;
+    background: rgba(18, 23, 31, 0.8);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-primary);
     font-size: 0.9rem;
     cursor: pointer;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .preset-save-row select:focus {
     outline: none;
     border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .save-preset-btn {
-    padding: 0.5rem 1rem;
+    padding: 0.55rem 1.1rem;
     background: var(--accent);
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--bg-primary);
     font-size: 0.9rem;
     font-weight: 600;
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: all 0.2s ease;
 }
 
 .save-preset-btn:hover:not(:disabled) {
-    opacity: 0.9;
+    box-shadow: 0 0 16px rgba(88, 166, 255, 0.4);
+    transform: translateY(-1px);
+}
+
+.save-preset-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .save-preset-btn:disabled {
@@ -761,25 +949,26 @@ h1:focus {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    padding: 0.5rem 0.75rem;
-    background: var(--bg-secondary);
+    padding: 0.6rem 0.85rem;
+    background: rgba(18, 23, 31, 0.8);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-primary);
     font-size: 0.9rem;
     cursor: pointer;
     text-align: left;
-    transition: border-color 0.15s;
+    transition: all 0.2s ease;
 }
 
 .preset-load-btn:hover {
     border-color: var(--accent);
+    background: rgba(88, 166, 255, 0.08);
 }
 
-.preset-load-btn:focus {
+.preset-load-btn:focus-visible {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25);
+    box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
 .preset-name {
@@ -793,29 +982,30 @@ h1:focus {
 }
 
 .preset-delete-btn {
-    width: 32px;
+    width: 36px;
     height: auto;
-    background: var(--bg-secondary);
+    background: rgba(18, 23, 31, 0.8);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 6px;
     color: var(--text-secondary);
     font-size: 1.1rem;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: border-color 0.15s, color 0.15s;
+    transition: all 0.2s ease;
 }
 
 .preset-delete-btn:hover {
     border-color: var(--status-over);
     color: var(--status-over);
+    background: rgba(248, 81, 73, 0.1);
 }
 
-.preset-delete-btn:focus {
+.preset-delete-btn:focus-visible {
     outline: none;
     border-color: var(--status-over);
-    box-shadow: 0 0 0 2px rgba(248, 81, 73, 0.25);
+    box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.3);
 }
 
 .no-presets {

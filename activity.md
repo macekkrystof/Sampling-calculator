@@ -108,3 +108,16 @@
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
 - Result: Build succeeds, 132/132 unit tests pass, 72/72 Playwright UI tests pass
 - Visual verification: URL state loading and Share button working correctly
+
+### 2026-02-05 – Iteration 10: Astronomical theme (dark-first) + accessibility pass (Task #9)
+- Task: Astronomical theme (dark-first) + accessibility pass (Task #9)
+- Implemented starfield background with CSS animation (two layers of stars with drift animation)
+- Added glassmorphism to all panels: backdrop-filter blur, semi-transparent backgrounds, glass borders
+- Enhanced color palette: darker base colors, accent glow for focus states
+- Gradient text on main heading, status badge glow effects and animations
+- Accessibility: skip link to main content, enhanced :focus-visible states, semantic <main> element
+- Improved button styling: consistent rounded corners, hover glow effects, transitions
+- 21 new Playwright tests for theme and accessibility features
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
+- Result: Build succeeds, 132/132 unit tests pass, 93/93 Playwright UI tests pass
+- Visual verification: dark astronomical theme with glassmorphism cards, starfield background

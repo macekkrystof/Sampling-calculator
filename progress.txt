@@ -241,3 +241,33 @@
   - InvariantCulture is essential for URL parameter encoding/decoding
   - Test with non-default values when testing encoding (default values produce empty string)
 ---
+
+## Iteration 10 - Astronomical theme (dark-first) + accessibility pass
+- What was implemented:
+  - **Starfield background:** CSS animated starfield with two layers of stars (::before and ::after pseudo-elements), subtle drift animation
+  - **Glassmorphism cards:** backdrop-filter blur on panels, semi-transparent backgrounds (rgba), glass borders (rgba white), box shadows
+  - **Enhanced color palette:** darker base colors, accent glow color for focus states, improved contrast for status colors
+  - **Typography improvements:** gradient text on main heading (white to accent blue), consistent letter-spacing
+  - **Status badge animations:** subtle scale animation on status changes, glow effects matching status colors
+  - **Accessibility - Skip link:** "Skip to main content" link for keyboard users, hidden until focused, links to main#main-content
+  - **Accessibility - Focus states:** Enhanced :focus-visible with 3px accent glow, visible focus rings on all interactive elements
+  - **Accessibility - Semantic HTML:** <main> element wrapper, aria-hidden="true" on decorative starfield
+  - **Improved transitions:** smooth transitions on hover/focus for buttons, inputs, cards
+  - **Button styling:** unified rounded corners (6px), consistent padding, hover glow effects
+- Files changed:
+  - src/SamplingCalculator/wwwroot/css/app.css (complete theme overhaul with glassmorphism, starfield, focus states)
+  - src/SamplingCalculator/Pages/Home.razor (added skip link, starfield div, main element wrapper)
+  - tests/SamplingCalculator.Playwright/UnitTest1.cs (21 new theme and accessibility tests)
+  - prd.md (marked task 9 as passes: true)
+- Test results:
+  - Unit tests: 132/132 passing
+  - Playwright tests: 93/93 passing (21 new theme/accessibility tests)
+- Learnings for future iterations:
+  - Use CSS custom properties for theme values to enable easy switching
+  - backdrop-filter requires -webkit prefix for Safari compatibility
+  - @supports for graceful fallback when backdrop-filter isn't supported
+  - :focus-visible is better than :focus for keyboard-only focus styling
+  - Skip links should be hidden off-screen, not display:none (screen readers)
+  - aria-hidden="true" for purely decorative elements like backgrounds
+  - Starfield animation performance is good with transform (GPU-accelerated)
+---

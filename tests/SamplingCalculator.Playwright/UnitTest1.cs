@@ -1300,3 +1300,292 @@ public class UrlStateTests : PageTest
         Assert.That(currentUrl, Does.Contain("bfl=1200"));
     }
 }
+
+// --- Task 9: Astronomical Theme & Accessibility Tests ---
+
+[Parallelizable(ParallelScope.Self)]
+[TestFixture]
+public class AstroThemeAccessibilityTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5173";
+
+    public override BrowserNewContextOptions ContextOptions()
+    {
+        return new BrowserNewContextOptions
+        {
+            IgnoreHTTPSErrors = true,
+        };
+    }
+
+    private async Task WaitForBlazorAsync()
+    {
+        await Page.GotoAsync(BaseUrl, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("Sampling Calculator",
+            new() { Timeout = 30000 });
+    }
+
+    [Test]
+    public async Task Theme_StarfieldBackgroundExists()
+    {
+        await WaitForBlazorAsync();
+
+        // Starfield div should exist and be in the DOM
+        var starfield = Page.Locator(".starfield");
+        await Expect(starfield).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Theme_StarfieldIsNotInteractive()
+    {
+        await WaitForBlazorAsync();
+
+        // Starfield should have pointer-events: none (aria-hidden)
+        var starfield = Page.Locator(".starfield");
+        var ariaHidden = await starfield.GetAttributeAsync("aria-hidden");
+        Assert.That(ariaHidden, Is.EqualTo("true"));
+    }
+
+    [Test]
+    public async Task Theme_GlassmorphismOnInputsPanel()
+    {
+        await WaitForBlazorAsync();
+
+        var inputsPanel = Page.Locator(".inputs-panel");
+        await Expect(inputsPanel).ToBeVisibleAsync();
+
+        // Check that panel has rounded corners (glassmorphism style)
+        var borderRadius = await inputsPanel.EvaluateAsync<string>("el => getComputedStyle(el).borderRadius");
+        Assert.That(borderRadius, Does.Contain("px").Or.Contain("12"));
+    }
+
+    [Test]
+    public async Task Theme_GlassmorphismOnResultsPanel()
+    {
+        await WaitForBlazorAsync();
+
+        var resultsPanel = Page.Locator(".results-panel");
+        await Expect(resultsPanel).ToBeVisibleAsync();
+
+        // Check that panel exists with correct styling
+        var boxShadow = await resultsPanel.EvaluateAsync<string>("el => getComputedStyle(el).boxShadow");
+        Assert.That(boxShadow, Is.Not.EqualTo("none"), "Results panel should have box shadow");
+    }
+
+    [Test]
+    public async Task Theme_StatusBadgeHasGlowEffect()
+    {
+        await WaitForBlazorAsync();
+
+        var statusBadge = Page.Locator(".status-badge");
+        await Expect(statusBadge).ToBeVisibleAsync();
+
+        // Status badge should have box-shadow for glow
+        var boxShadow = await statusBadge.EvaluateAsync<string>("el => getComputedStyle(el).boxShadow");
+        Assert.That(boxShadow, Is.Not.EqualTo("none"), "Status badge should have glow effect");
+    }
+
+    [Test]
+    public async Task Theme_HeadingHasGradient()
+    {
+        await WaitForBlazorAsync();
+
+        var heading = Page.Locator("h1");
+        await Expect(heading).ToBeVisibleAsync();
+
+        // Heading should have background-clip: text for gradient effect
+        var backgroundClip = await heading.EvaluateAsync<string>("el => getComputedStyle(el).backgroundClip");
+        Assert.That(backgroundClip, Is.EqualTo("text"));
+    }
+
+    [Test]
+    public async Task Accessibility_SkipLinkExists()
+    {
+        await WaitForBlazorAsync();
+
+        var skipLink = Page.Locator(".skip-link");
+        await Expect(skipLink).ToHaveCountAsync(1);
+        await Expect(skipLink).ToHaveTextAsync("Skip to main content");
+    }
+
+    [Test]
+    public async Task Accessibility_SkipLinkHasCorrectHref()
+    {
+        await WaitForBlazorAsync();
+
+        var skipLink = Page.Locator(".skip-link");
+        var href = await skipLink.GetAttributeAsync("href");
+        Assert.That(href, Is.EqualTo("#main-content"));
+    }
+
+    [Test]
+    public async Task Accessibility_MainContentHasId()
+    {
+        await WaitForBlazorAsync();
+
+        var mainContent = Page.Locator("#main-content");
+        await Expect(mainContent).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Accessibility_MainContentIsMainElement()
+    {
+        await WaitForBlazorAsync();
+
+        var mainElement = Page.Locator("main#main-content");
+        await Expect(mainElement).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Accessibility_InputsHaveFocusVisibleStyles()
+    {
+        await WaitForBlazorAsync();
+
+        var focalLengthInput = Page.Locator("#single-focalLength");
+        await focalLengthInput.FocusAsync();
+
+        // Check that the focused input has visible focus indicator
+        var boxShadow = await focalLengthInput.EvaluateAsync<string>("el => getComputedStyle(el).boxShadow");
+        Assert.That(boxShadow, Is.Not.EqualTo("none"), "Focused input should have visible focus indicator");
+    }
+
+    [Test]
+    public async Task Accessibility_ButtonsHaveFocusVisibleStyles()
+    {
+        await WaitForBlazorAsync();
+
+        var shareBtn = Page.Locator(".share-btn");
+        await shareBtn.FocusAsync();
+
+        // The button should be focusable
+        await Expect(shareBtn).ToBeFocusedAsync();
+    }
+
+    [Test]
+    public async Task Accessibility_PresetButtonsKeyboardNavigable()
+    {
+        await WaitForBlazorAsync();
+
+        // Tab to first preset button
+        var excellentBtn = Page.Locator(".preset-btn").First;
+        await excellentBtn.FocusAsync();
+        await Expect(excellentBtn).ToBeFocusedAsync();
+
+        // Can activate with keyboard
+        await Page.Keyboard.PressAsync("Enter");
+
+        // Seeing value should change
+        var seeing = Page.Locator("#single-seeing");
+        await Expect(seeing).ToHaveValueAsync("1.5");
+    }
+
+    [Test]
+    public async Task Accessibility_StatusCardsHaveRoleStatus()
+    {
+        await WaitForBlazorAsync();
+
+        var statusCard = Page.Locator("[role='status']");
+        await Expect(statusCard).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Accessibility_ValidationWarningHasRoleAlert()
+    {
+        await WaitForBlazorAsync();
+
+        // Make input invalid
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("0");
+        await focalLength.DispatchEventAsync("input");
+
+        // Validation warning should have role="alert"
+        var warningCard = Page.Locator(".validation-warning-card");
+        var role = await warningCard.GetAttributeAsync("role");
+        Assert.That(role, Is.EqualTo("alert"));
+    }
+
+    [Test]
+    public async Task Theme_DarkColorScheme()
+    {
+        await WaitForBlazorAsync();
+
+        // Body background should be dark
+        var bgColor = await Page.Locator("body").EvaluateAsync<string>("el => getComputedStyle(el).backgroundColor");
+
+        // Parse RGB values - should be dark (low values)
+        // Format: rgb(r, g, b) or rgba(r, g, b, a)
+        Assert.That(bgColor, Does.Contain("rgb"), "Background should have RGB color");
+
+        // Check it's a dark color (any component less than 50 suggests dark theme)
+        var numbers = System.Text.RegularExpressions.Regex.Matches(bgColor, @"\d+");
+        if (numbers.Count >= 3)
+        {
+            var r = int.Parse(numbers[0].Value);
+            var g = int.Parse(numbers[1].Value);
+            var b = int.Parse(numbers[2].Value);
+            Assert.That(r + g + b, Is.LessThan(150), "Background should be dark");
+        }
+    }
+
+    [Test]
+    public async Task Theme_ContrastOnStatusBadge()
+    {
+        await WaitForBlazorAsync();
+
+        var statusBadge = Page.Locator(".status-badge");
+        await Expect(statusBadge).ToBeVisibleAsync();
+
+        // Status badge text should be readable
+        var color = await statusBadge.EvaluateAsync<string>("el => getComputedStyle(el).color");
+        Assert.That(color, Does.Contain("rgb"), "Status badge should have colored text");
+    }
+
+    [Test]
+    public async Task Accessibility_CompareToggleKeyboardAccessible()
+    {
+        await WaitForBlazorAsync();
+
+        var toggle = Page.Locator("input[type='checkbox']");
+        await toggle.FocusAsync();
+        await Expect(toggle).ToBeFocusedAsync();
+
+        // Should be able to toggle with space key
+        await Page.Keyboard.PressAsync("Space");
+        await Expect(toggle).ToBeCheckedAsync();
+    }
+
+    [Test]
+    public async Task Accessibility_BinningSelectKeyboardAccessible()
+    {
+        await WaitForBlazorAsync();
+
+        var binning = Page.Locator("#single-binning");
+        await binning.FocusAsync();
+        await Expect(binning).ToBeFocusedAsync();
+    }
+
+    [Test]
+    public async Task Theme_ResultCardBordersVisible()
+    {
+        await WaitForBlazorAsync();
+
+        var resultCard = Page.Locator(".result-card").First;
+        await Expect(resultCard).ToBeVisibleAsync();
+
+        var borderStyle = await resultCard.EvaluateAsync<string>("el => getComputedStyle(el).borderStyle");
+        Assert.That(borderStyle, Is.Not.EqualTo("none"), "Result cards should have visible borders");
+    }
+
+    [Test]
+    public async Task Theme_PresetActiveButtonHighlighted()
+    {
+        await WaitForBlazorAsync();
+
+        // Default seeing is 2.0, so Average button should be active
+        var activeBtn = Page.Locator(".preset-btn.preset-active");
+        await Expect(activeBtn).ToBeVisibleAsync();
+
+        // Active button should have different background
+        var bgColor = await activeBtn.EvaluateAsync<string>("el => getComputedStyle(el).backgroundColor");
+        Assert.That(bgColor, Does.Not.EqualTo("rgba(0, 0, 0, 0)"), "Active preset button should have background");
+    }
+}

@@ -204,7 +204,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 9,
     "title": "Astronomical theme (dark-first) + accessibility pass",
     "description": "Implement a modern astro look (dark palette, subtle starfield background, glass cards, consistent spacing/typography). Ensure keyboard navigation, focus states, and contrast compliance for key elements.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 10,

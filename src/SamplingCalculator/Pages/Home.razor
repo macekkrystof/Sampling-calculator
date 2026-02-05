@@ -7,7 +7,10 @@
 
 <PageTitle>Sampling Calculator</PageTitle>
 
-<div class="calculator-container">
+<a href="#main-content" class="skip-link">Skip to main content</a>
+<div class="starfield" aria-hidden="true"></div>
+
+<main id="main-content" class="calculator-container">
     <header class="calculator-header">
         <h1>Sampling Calculator</h1>
         <p class="subtitle">Camera &times; Telescope sampling evaluator for astrophotography</p>
@@ -58,7 +61,7 @@
             <ResultsPanel ResultsLabel="Results" IdPrefix="single" Input="InputA" />
         </div>
     }
-</div>
+</main>
 
 @code {
     private CalculatorInput InputA { get; set; } = new();
