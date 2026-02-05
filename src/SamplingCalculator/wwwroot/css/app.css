@@ -602,3 +602,201 @@ h1:focus {
         padding-bottom: 0;
     }
 }
+
+/* Presets panel */
+.presets-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.presets-panel h2 {
+    font-size: 1.2rem;
+    margin: 0 0 1rem;
+    color: var(--accent);
+}
+
+.presets-panel h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-secondary);
+    margin: 0 0 0.5rem;
+}
+
+.preset-save-section {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.preset-save-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.preset-save-row input[type="text"] {
+    flex: 1;
+    min-width: 120px;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.preset-save-row input[type="text"]:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25);
+}
+
+.preset-save-row select {
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.preset-save-row select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.save-preset-btn {
+    padding: 0.5rem 1rem;
+    background: var(--accent);
+    border: none;
+    border-radius: 4px;
+    color: var(--bg-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.save-preset-btn:hover:not(:disabled) {
+    opacity: 0.9;
+}
+
+.save-preset-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.preset-message {
+    margin-top: 0.5rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.preset-message.success {
+    background: rgba(63, 185, 80, 0.15);
+    color: var(--status-optimal);
+}
+
+.preset-message.error {
+    background: rgba(248, 81, 73, 0.15);
+    color: var(--status-over);
+}
+
+.preset-lists {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.preset-category {
+    /* Group styling */
+}
+
+.preset-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.preset-item {
+    display: flex;
+    gap: 0.35rem;
+}
+
+.preset-load-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s;
+}
+
+.preset-load-btn:hover {
+    border-color: var(--accent);
+}
+
+.preset-load-btn:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.25);
+}
+
+.preset-name {
+    font-weight: 500;
+}
+
+.preset-summary {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-top: 0.15rem;
+}
+
+.preset-delete-btn {
+    width: 32px;
+    height: auto;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.15s, color 0.15s;
+}
+
+.preset-delete-btn:hover {
+    border-color: var(--status-over);
+    color: var(--status-over);
+}
+
+.preset-delete-btn:focus {
+    outline: none;
+    border-color: var(--status-over);
+    box-shadow: 0 0 0 2px rgba(248, 81, 73, 0.25);
+}
+
+.no-presets {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-style: italic;
+    margin: 0;
+}

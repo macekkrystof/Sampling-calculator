@@ -569,3 +569,430 @@ public class ComparisonModeTests : PageTest
         await Expect(setupB).ToBeVisibleAsync();
     }
 }
+
+// --- Task 7: Presets Tests ---
+
+[Parallelizable(ParallelScope.Self)]
+[TestFixture]
+public class PresetsTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5173";
+
+    public override BrowserNewContextOptions ContextOptions()
+    {
+        return new BrowserNewContextOptions
+        {
+            IgnoreHTTPSErrors = true,
+        };
+    }
+
+    private async Task WaitForBlazorAsync()
+    {
+        await Page.GotoAsync(BaseUrl, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("Sampling Calculator",
+            new() { Timeout = 30000 });
+    }
+
+    private async Task ClearLocalStorageAsync()
+    {
+        await Page.EvaluateAsync("localStorage.clear()");
+    }
+
+    [SetUp]
+    public async Task SetUp()
+    {
+        // Navigate first, then clear localStorage
+        await Page.GotoAsync(BaseUrl, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        await ClearLocalStorageAsync();
+    }
+
+    [Test]
+    public async Task PresetsPanel_IsVisible()
+    {
+        await WaitForBlazorAsync();
+
+        var presetsPanel = Page.Locator(".presets-panel");
+        await Expect(presetsPanel).ToBeVisibleAsync();
+
+        var heading = Page.Locator(".presets-panel h2");
+        await Expect(heading).ToHaveTextAsync("Presets");
+    }
+
+    [Test]
+    public async Task PresetsPanel_HasNameInput()
+    {
+        await WaitForBlazorAsync();
+
+        var nameInput = Page.Locator("#preset-name");
+        await Expect(nameInput).ToBeVisibleAsync();
+        await Expect(nameInput).ToHaveAttributeAsync("placeholder", "Preset name");
+    }
+
+    [Test]
+    public async Task PresetsPanel_HasTypeSelect()
+    {
+        await WaitForBlazorAsync();
+
+        var typeSelect = Page.Locator("#preset-type");
+        await Expect(typeSelect).ToBeVisibleAsync();
+
+        // Should have Full Rig, Telescope, Camera options
+        var options = typeSelect.Locator("option");
+        await Expect(options).ToHaveCountAsync(3);
+    }
+
+    [Test]
+    public async Task PresetsPanel_SaveButtonDisabledWhenEmpty()
+    {
+        await WaitForBlazorAsync();
+
+        var saveBtn = Page.Locator(".save-preset-btn");
+        await Expect(saveBtn).ToBeDisabledAsync();
+    }
+
+    [Test]
+    public async Task PresetsPanel_SaveButtonEnabledWithName()
+    {
+        await WaitForBlazorAsync();
+
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("My Preset");
+
+        var saveBtn = Page.Locator(".save-preset-btn");
+        await Expect(saveBtn).ToBeEnabledAsync();
+    }
+
+    [Test]
+    public async Task Presets_SaveFullRigPreset()
+    {
+        await WaitForBlazorAsync();
+
+        // Set some values
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("1200");
+        await focalLength.DispatchEventAsync("input");
+
+        // Save preset
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("My Full Rig");
+
+        var saveBtn = Page.Locator(".save-preset-btn");
+        await saveBtn.ClickAsync();
+
+        // Preset should appear in list
+        var presetItem = Page.Locator(".preset-load-btn:has-text('My Full Rig')");
+        await Expect(presetItem).ToBeVisibleAsync();
+
+        // Success message should appear
+        var message = Page.Locator(".preset-message.success");
+        await Expect(message).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task Presets_SaveTelescopePreset()
+    {
+        await WaitForBlazorAsync();
+
+        // Select telescope type
+        var typeSelect = Page.Locator("#preset-type");
+        await typeSelect.SelectOptionAsync("Telescope");
+
+        // Save preset
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("My Scope");
+
+        var saveBtn = Page.Locator(".save-preset-btn");
+        await saveBtn.ClickAsync();
+
+        // Preset should appear under Telescope category
+        var telescopeHeading = Page.Locator(".preset-category h3:has-text('Telescope')");
+        await Expect(telescopeHeading).ToBeVisibleAsync();
+
+        var presetItem = Page.Locator(".preset-load-btn:has-text('My Scope')");
+        await Expect(presetItem).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task Presets_SaveCameraPreset()
+    {
+        await WaitForBlazorAsync();
+
+        // Select camera type
+        var typeSelect = Page.Locator("#preset-type");
+        await typeSelect.SelectOptionAsync("Camera");
+
+        // Save preset
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("My Camera");
+
+        var saveBtn = Page.Locator(".save-preset-btn");
+        await saveBtn.ClickAsync();
+
+        // Preset should appear under Camera category
+        var cameraHeading = Page.Locator(".preset-category h3:has-text('Camera')");
+        await Expect(cameraHeading).ToBeVisibleAsync();
+
+        var presetItem = Page.Locator(".preset-load-btn:has-text('My Camera')");
+        await Expect(presetItem).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task Presets_LoadFullRigPreset()
+    {
+        await WaitForBlazorAsync();
+
+        // First, change values and save
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("1500");
+        await focalLength.DispatchEventAsync("input");
+
+        var pixelSize = Page.Locator("#single-pixelSize");
+        await pixelSize.FillAsync("4.5");
+        await pixelSize.DispatchEventAsync("input");
+
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Test Rig");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Reset values
+        await focalLength.FillAsync("800");
+        await focalLength.DispatchEventAsync("input");
+        await pixelSize.FillAsync("3.76");
+        await pixelSize.DispatchEventAsync("input");
+
+        // Load the preset
+        await Page.Locator(".preset-load-btn:has-text('Test Rig')").ClickAsync();
+
+        // Values should be restored
+        await Expect(focalLength).ToHaveValueAsync("1500");
+        await Expect(pixelSize).ToHaveValueAsync("4.5");
+    }
+
+    [Test]
+    public async Task Presets_DeletePreset()
+    {
+        await WaitForBlazorAsync();
+
+        // Save a preset first
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("To Delete");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Verify it exists
+        var presetItem = Page.Locator(".preset-load-btn:has-text('To Delete')");
+        await Expect(presetItem).ToBeVisibleAsync();
+
+        // Delete it
+        var deleteBtn = Page.Locator(".preset-item:has-text('To Delete') .preset-delete-btn");
+        await deleteBtn.ClickAsync();
+
+        // Should be gone
+        await Expect(presetItem).Not.ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task Presets_PersistAcrossReload()
+    {
+        await WaitForBlazorAsync();
+
+        // Save a preset
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Persistent Preset");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Reload page
+        await Page.ReloadAsync();
+        await WaitForBlazorAsync();
+
+        // Preset should still exist
+        var presetItem = Page.Locator(".preset-load-btn:has-text('Persistent Preset')");
+        await Expect(presetItem).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task Presets_ShowSummaryInfo()
+    {
+        await WaitForBlazorAsync();
+
+        // Set specific values
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("1200");
+        await focalLength.DispatchEventAsync("input");
+
+        // Save as Full Rig
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Summary Test");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Summary should show focal length
+        var summary = Page.Locator(".preset-item:has-text('Summary Test') .preset-summary");
+        await Expect(summary).ToContainTextAsync("1200mm");
+    }
+
+    [Test]
+    public async Task Presets_NameInputClearedAfterSave()
+    {
+        await WaitForBlazorAsync();
+
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Test Save");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Name input should be cleared after save
+        await Expect(nameInput).ToHaveValueAsync("");
+    }
+
+    [Test]
+    public async Task Presets_NoPresetsMessage_ShownInitially()
+    {
+        await WaitForBlazorAsync();
+
+        // With cleared localStorage, should show no presets message
+        var noPresetsMsg = Page.Locator(".no-presets");
+        await Expect(noPresetsMsg).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task Presets_NoPresetsMessage_HiddenAfterSave()
+    {
+        await WaitForBlazorAsync();
+
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("First Preset");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // No presets message should be hidden
+        var noPresetsMsg = Page.Locator(".no-presets");
+        await Expect(noPresetsMsg).Not.ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task Presets_LoadMessage_Shown()
+    {
+        await WaitForBlazorAsync();
+
+        // Save a preset
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Load Test");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Wait for save message to clear (optional, but makes test more reliable)
+        await Page.WaitForTimeoutAsync(500);
+
+        // Load it
+        await Page.Locator(".preset-load-btn:has-text('Load Test')").ClickAsync();
+
+        // Should show loaded message
+        var message = Page.Locator(".preset-message");
+        await Expect(message).ToContainTextAsync("Loaded");
+    }
+
+    [Test]
+    public async Task Presets_TelescopePreset_OnlyAppliesTelescopeValues()
+    {
+        await WaitForBlazorAsync();
+
+        // Set initial camera values
+        var pixelSize = Page.Locator("#single-pixelSize");
+        await pixelSize.FillAsync("5.0");
+        await pixelSize.DispatchEventAsync("input");
+
+        // Save as telescope preset (captures telescope values)
+        var typeSelect = Page.Locator("#preset-type");
+        await typeSelect.SelectOptionAsync("Telescope");
+
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("1500");
+        await focalLength.DispatchEventAsync("input");
+
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Scope Only");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Reset telescope values, keep camera values different
+        await focalLength.FillAsync("800");
+        await focalLength.DispatchEventAsync("input");
+        await pixelSize.FillAsync("3.76");
+        await pixelSize.DispatchEventAsync("input");
+
+        // Load telescope preset
+        await Page.Locator(".preset-load-btn:has-text('Scope Only')").ClickAsync();
+
+        // Focal length should be restored
+        await Expect(focalLength).ToHaveValueAsync("1500");
+        // Pixel size should NOT have changed from original save value (5.0) - actually it should remain 3.76
+        // because telescope presets don't touch camera values
+        await Expect(pixelSize).ToHaveValueAsync("3.76");
+    }
+
+    [Test]
+    public async Task Presets_CameraPreset_OnlyAppliesCameraValues()
+    {
+        await WaitForBlazorAsync();
+
+        // Set initial telescope values
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("1200");
+        await focalLength.DispatchEventAsync("input");
+
+        // Save as camera preset
+        var typeSelect = Page.Locator("#preset-type");
+        await typeSelect.SelectOptionAsync("Camera");
+
+        var pixelSize = Page.Locator("#single-pixelSize");
+        await pixelSize.FillAsync("4.5");
+        await pixelSize.DispatchEventAsync("input");
+
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Camera Only");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Reset camera values, keep telescope values different
+        await pixelSize.FillAsync("3.76");
+        await pixelSize.DispatchEventAsync("input");
+        await focalLength.FillAsync("800");
+        await focalLength.DispatchEventAsync("input");
+
+        // Load camera preset
+        await Page.Locator(".preset-load-btn:has-text('Camera Only')").ClickAsync();
+
+        // Pixel size should be restored
+        await Expect(pixelSize).ToHaveValueAsync("4.5");
+        // Focal length should NOT have changed
+        await Expect(focalLength).ToHaveValueAsync("800");
+    }
+
+    [Test]
+    public async Task Presets_Accessibility_DeleteButtonHasAriaLabel()
+    {
+        await WaitForBlazorAsync();
+
+        // Save a preset
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Accessible Preset");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Delete button should have aria-label
+        var deleteBtn = Page.Locator(".preset-item:has-text('Accessible Preset') .preset-delete-btn");
+        var ariaLabel = await deleteBtn.GetAttributeAsync("aria-label");
+        Assert.That(ariaLabel, Does.Contain("Delete"));
+        Assert.That(ariaLabel, Does.Contain("Accessible Preset"));
+    }
+
+    [Test]
+    public async Task Presets_Accessibility_LoadButtonHasAriaLabel()
+    {
+        await WaitForBlazorAsync();
+
+        // Save a preset
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("Load Me");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Load button should have aria-label
+        var loadBtn = Page.Locator(".preset-load-btn:has-text('Load Me')");
+        var ariaLabel = await loadBtn.GetAttributeAsync("aria-label");
+        Assert.That(ariaLabel, Does.Contain("Load"));
+        Assert.That(ariaLabel, Does.Contain("Load Me"));
+    }
+}

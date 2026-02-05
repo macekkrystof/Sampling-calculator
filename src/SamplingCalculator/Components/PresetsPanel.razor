@@ -1,0 +1,264 @@
+@namespace SamplingCalculator.Components
+@using SamplingCalculator.Models
+@using SamplingCalculator.Services
+@inject PresetService PresetService
+
+<section class="presets-panel" aria-label="Presets">
+    <h2>Presets</h2>
+
+    @* Save preset section *@
+    <div class="preset-save-section">
+        <div class="preset-save-row">
+            <input type="text"
+                   id="preset-name"
+                   @bind="NewPresetName"
+                   @bind:event="oninput"
+                   placeholder="Preset name"
+                   maxlength="50"
+                   aria-label="New preset name" />
+            <select id="preset-type" @bind="NewPresetType" aria-label="Preset type">
+                <option value="@PresetType.FullRig">Full Rig</option>
+                <option value="@PresetType.Telescope">Telescope</option>
+                <option value="@PresetType.Camera">Camera</option>
+            </select>
+            <button class="save-preset-btn"
+                    @onclick="SavePreset"
+                    disabled="@string.IsNullOrWhiteSpace(NewPresetName)"
+                    aria-label="Save preset">
+                Save
+            </button>
+        </div>
+        @if (!string.IsNullOrEmpty(SaveMessage))
+        {
+            <div class="preset-message @(SaveMessageIsError ? "error" : "success")" role="status">
+                @SaveMessage
+            </div>
+        }
+    </div>
+
+    @* Preset lists *@
+    <div class="preset-lists">
+        @* Full Rig presets *@
+        @if (FullRigPresets.Count > 0)
+        {
+            <div class="preset-category">
+                <h3>Full Rig</h3>
+                <ul class="preset-list" aria-label="Full rig presets">
+                    @foreach (var preset in FullRigPresets)
+                    {
+                        <li class="preset-item">
+                            <button class="preset-load-btn"
+                                    @onclick="() => LoadFullRigPreset(preset)"
+                                    aria-label="Load @preset.Name preset">
+                                <span class="preset-name">@preset.Name</span>
+                                <span class="preset-summary">@FormatFullRigSummary(preset)</span>
+                            </button>
+                            <button class="preset-delete-btn"
+                                    @onclick="() => DeleteFullRigPreset(preset.Id)"
+                                    aria-label="Delete @preset.Name preset">
+                                &times;
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @* Telescope presets *@
+        @if (TelescopePresets.Count > 0)
+        {
+            <div class="preset-category">
+                <h3>Telescope</h3>
+                <ul class="preset-list" aria-label="Telescope presets">
+                    @foreach (var preset in TelescopePresets)
+                    {
+                        <li class="preset-item">
+                            <button class="preset-load-btn"
+                                    @onclick="() => LoadTelescopePreset(preset)"
+                                    aria-label="Load @preset.Name preset">
+                                <span class="preset-name">@preset.Name</span>
+                                <span class="preset-summary">@FormatTelescopeSummary(preset)</span>
+                            </button>
+                            <button class="preset-delete-btn"
+                                    @onclick="() => DeleteTelescopePreset(preset.Id)"
+                                    aria-label="Delete @preset.Name preset">
+                                &times;
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @* Camera presets *@
+        @if (CameraPresets.Count > 0)
+        {
+            <div class="preset-category">
+                <h3>Camera</h3>
+                <ul class="preset-list" aria-label="Camera presets">
+                    @foreach (var preset in CameraPresets)
+                    {
+                        <li class="preset-item">
+                            <button class="preset-load-btn"
+                                    @onclick="() => LoadCameraPreset(preset)"
+                                    aria-label="Load @preset.Name preset">
+                                <span class="preset-name">@preset.Name</span>
+                                <span class="preset-summary">@FormatCameraSummary(preset)</span>
+                            </button>
+                            <button class="preset-delete-btn"
+                                    @onclick="() => DeleteCameraPreset(preset.Id)"
+                                    aria-label="Delete @preset.Name preset">
+                                &times;
+                            </button>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (TelescopePresets.Count == 0 && CameraPresets.Count == 0 && FullRigPresets.Count == 0)
+        {
+            <p class="no-presets">No saved presets. Enter a name and click Save to create one.</p>
+        }
+    </div>
+</section>
+
+@code {
+    [Parameter] public CalculatorInput Input { get; set; } = new();
+    [Parameter] public EventCallback OnPresetLoaded { get; set; }
+
+    private List<TelescopePreset> TelescopePresets { get; set; } = new();
+    private List<CameraPreset> CameraPresets { get; set; } = new();
+    private List<FullRigPreset> FullRigPresets { get; set; } = new();
+
+    private string NewPresetName { get; set; } = string.Empty;
+    private PresetType NewPresetType { get; set; } = PresetType.FullRig;
+    private string SaveMessage { get; set; } = string.Empty;
+    private bool SaveMessageIsError { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPresets();
+    }
+
+    private async Task LoadPresets()
+    {
+        TelescopePresets = await PresetService.GetTelescopePresetsAsync();
+        CameraPresets = await PresetService.GetCameraPresetsAsync();
+        FullRigPresets = await PresetService.GetFullRigPresetsAsync();
+    }
+
+    private async Task SavePreset()
+    {
+        if (string.IsNullOrWhiteSpace(NewPresetName))
+            return;
+
+        try
+        {
+            switch (NewPresetType)
+            {
+                case PresetType.Telescope:
+                    var telescopePreset = TelescopePreset.FromInput(Input, NewPresetName.Trim());
+                    await PresetService.SaveTelescopePresetAsync(telescopePreset);
+                    break;
+                case PresetType.Camera:
+                    var cameraPreset = CameraPreset.FromInput(Input, NewPresetName.Trim());
+                    await PresetService.SaveCameraPresetAsync(cameraPreset);
+                    break;
+                case PresetType.FullRig:
+                    var fullRigPreset = FullRigPreset.FromInput(Input, NewPresetName.Trim());
+                    await PresetService.SaveFullRigPresetAsync(fullRigPreset);
+                    break;
+            }
+
+            await LoadPresets();
+            NewPresetName = string.Empty;
+            ShowMessage($"Preset saved", false);
+        }
+        catch (Exception)
+        {
+            ShowMessage("Failed to save preset", true);
+        }
+    }
+
+    private async Task LoadTelescopePreset(TelescopePreset preset)
+    {
+        preset.ApplyTo(Input);
+        await OnPresetLoaded.InvokeAsync();
+        ShowMessage($"Loaded: {preset.Name}", false);
+    }
+
+    private async Task LoadCameraPreset(CameraPreset preset)
+    {
+        preset.ApplyTo(Input);
+        await OnPresetLoaded.InvokeAsync();
+        ShowMessage($"Loaded: {preset.Name}", false);
+    }
+
+    private async Task LoadFullRigPreset(FullRigPreset preset)
+    {
+        preset.ApplyTo(Input);
+        await OnPresetLoaded.InvokeAsync();
+        ShowMessage($"Loaded: {preset.Name}", false);
+    }
+
+    private async Task DeleteTelescopePreset(string id)
+    {
+        await PresetService.DeleteTelescopePresetAsync(id);
+        await LoadPresets();
+        ShowMessage("Preset deleted", false);
+    }
+
+    private async Task DeleteCameraPreset(string id)
+    {
+        await PresetService.DeleteCameraPresetAsync(id);
+        await LoadPresets();
+        ShowMessage("Preset deleted", false);
+    }
+
+    private async Task DeleteFullRigPreset(string id)
+    {
+        await PresetService.DeleteFullRigPresetAsync(id);
+        await LoadPresets();
+        ShowMessage("Preset deleted", false);
+    }
+
+    private void ShowMessage(string message, bool isError)
+    {
+        SaveMessage = message;
+        SaveMessageIsError = isError;
+        StateHasChanged();
+
+        // Clear message after delay using a timer
+        _ = ClearMessageAfterDelay();
+    }
+
+    private async Task ClearMessageAfterDelay()
+    {
+        await Task.Delay(3000);
+        SaveMessage = string.Empty;
+        StateHasChanged();
+    }
+
+    private static string FormatTelescopeSummary(TelescopePreset p)
+    {
+        var parts = new List<string> { $"{p.BaseFocalLength}mm" };
+        if (p.ApertureDiameter.HasValue)
+            parts.Add($"f/{p.BaseFocalLength / p.ApertureDiameter.Value:F1}");
+        if (p.ReducerFactor != 1.0)
+            parts.Add($"{p.ReducerFactor}x red");
+        if (p.BarlowFactor != 1.0)
+            parts.Add($"{p.BarlowFactor}x bar");
+        return string.Join(" · ", parts);
+    }
+
+    private static string FormatCameraSummary(CameraPreset p)
+    {
+        return $"{p.PixelSize}µm · {p.SensorWidthPx}×{p.SensorHeightPx}px";
+    }
+
+    private static string FormatFullRigSummary(FullRigPreset p)
+    {
+        return $"{p.BaseFocalLength}mm · {p.PixelSize}µm · {p.Seeing}″";
+    }
+}

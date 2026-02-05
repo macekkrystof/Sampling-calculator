@@ -950,3 +950,265 @@ public class CalculatorInputCopyTests
         Assert.Equal(1000, source.BaseFocalLength);
     }
 }
+
+// --- Task 7: Preset model tests ---
+
+public class PresetModelTests
+{
+    [Fact]
+    public void TelescopePreset_FromInput_CapturesTelescopeValues()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1200,
+            ApertureDiameter = 250,
+            ReducerFactor = 0.75,
+            BarlowFactor = 1.5,
+            PixelSize = 4.5,
+            SensorWidthPx = 4096,
+            SensorHeightPx = 2160,
+            Binning = 2,
+            Seeing = 2.5
+        };
+
+        var preset = TelescopePreset.FromInput(input, "My Telescope");
+
+        Assert.Equal("My Telescope", preset.Name);
+        Assert.Equal(PresetType.Telescope, preset.Type);
+        Assert.Equal(1200, preset.BaseFocalLength);
+        Assert.Equal(250, preset.ApertureDiameter);
+        Assert.Equal(0.75, preset.ReducerFactor);
+        Assert.Equal(1.5, preset.BarlowFactor);
+    }
+
+    [Fact]
+    public void TelescopePreset_ApplyTo_SetsTelescopeValues()
+    {
+        var preset = new TelescopePreset
+        {
+            BaseFocalLength = 1500,
+            ApertureDiameter = 300,
+            ReducerFactor = 0.8,
+            BarlowFactor = 2.0
+        };
+        var input = new CalculatorInput();
+
+        preset.ApplyTo(input);
+
+        Assert.Equal(1500, input.BaseFocalLength);
+        Assert.Equal(300, input.ApertureDiameter);
+        Assert.Equal(0.8, input.ReducerFactor);
+        Assert.Equal(2.0, input.BarlowFactor);
+    }
+
+    [Fact]
+    public void TelescopePreset_ApplyTo_DoesNotAffectCameraValues()
+    {
+        var preset = new TelescopePreset { BaseFocalLength = 1500 };
+        var input = new CalculatorInput
+        {
+            PixelSize = 5.0,
+            SensorWidthPx = 8000,
+            Binning = 3
+        };
+
+        preset.ApplyTo(input);
+
+        Assert.Equal(5.0, input.PixelSize);
+        Assert.Equal(8000, input.SensorWidthPx);
+        Assert.Equal(3, input.Binning);
+    }
+
+    [Fact]
+    public void CameraPreset_FromInput_CapturesCameraValues()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1200,
+            PixelSize = 3.76,
+            SensorWidthPx = 6248,
+            SensorHeightPx = 4176,
+            Binning = 2
+        };
+
+        var preset = CameraPreset.FromInput(input, "My Camera");
+
+        Assert.Equal("My Camera", preset.Name);
+        Assert.Equal(PresetType.Camera, preset.Type);
+        Assert.Equal(3.76, preset.PixelSize);
+        Assert.Equal(6248, preset.SensorWidthPx);
+        Assert.Equal(4176, preset.SensorHeightPx);
+        Assert.Equal(2, preset.Binning);
+    }
+
+    [Fact]
+    public void CameraPreset_ApplyTo_SetsCameraValues()
+    {
+        var preset = new CameraPreset
+        {
+            PixelSize = 2.4,
+            SensorWidthPx = 9576,
+            SensorHeightPx = 6388,
+            Binning = 1
+        };
+        var input = new CalculatorInput();
+
+        preset.ApplyTo(input);
+
+        Assert.Equal(2.4, input.PixelSize);
+        Assert.Equal(9576, input.SensorWidthPx);
+        Assert.Equal(6388, input.SensorHeightPx);
+        Assert.Equal(1, input.Binning);
+    }
+
+    [Fact]
+    public void CameraPreset_ApplyTo_DoesNotAffectTelescopeValues()
+    {
+        var preset = new CameraPreset { PixelSize = 2.4 };
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1200,
+            ApertureDiameter = 250,
+            ReducerFactor = 0.7
+        };
+
+        preset.ApplyTo(input);
+
+        Assert.Equal(1200, input.BaseFocalLength);
+        Assert.Equal(250, input.ApertureDiameter);
+        Assert.Equal(0.7, input.ReducerFactor);
+    }
+
+    [Fact]
+    public void FullRigPreset_FromInput_CapturesAllValues()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1200,
+            ApertureDiameter = 250,
+            ReducerFactor = 0.75,
+            BarlowFactor = 1.5,
+            PixelSize = 3.76,
+            SensorWidthPx = 6248,
+            SensorHeightPx = 4176,
+            Binning = 2,
+            Seeing = 1.8
+        };
+
+        var preset = FullRigPreset.FromInput(input, "Full Rig");
+
+        Assert.Equal("Full Rig", preset.Name);
+        Assert.Equal(PresetType.FullRig, preset.Type);
+        Assert.Equal(1200, preset.BaseFocalLength);
+        Assert.Equal(250, preset.ApertureDiameter);
+        Assert.Equal(0.75, preset.ReducerFactor);
+        Assert.Equal(1.5, preset.BarlowFactor);
+        Assert.Equal(3.76, preset.PixelSize);
+        Assert.Equal(6248, preset.SensorWidthPx);
+        Assert.Equal(4176, preset.SensorHeightPx);
+        Assert.Equal(2, preset.Binning);
+        Assert.Equal(1.8, preset.Seeing);
+    }
+
+    [Fact]
+    public void FullRigPreset_ApplyTo_SetsAllValues()
+    {
+        var preset = new FullRigPreset
+        {
+            BaseFocalLength = 1500,
+            ApertureDiameter = 300,
+            ReducerFactor = 0.8,
+            BarlowFactor = 2.0,
+            PixelSize = 2.4,
+            SensorWidthPx = 9576,
+            SensorHeightPx = 6388,
+            Binning = 3,
+            Seeing = 2.5
+        };
+        var input = new CalculatorInput();
+
+        preset.ApplyTo(input);
+
+        Assert.Equal(1500, input.BaseFocalLength);
+        Assert.Equal(300, input.ApertureDiameter);
+        Assert.Equal(0.8, input.ReducerFactor);
+        Assert.Equal(2.0, input.BarlowFactor);
+        Assert.Equal(2.4, input.PixelSize);
+        Assert.Equal(9576, input.SensorWidthPx);
+        Assert.Equal(6388, input.SensorHeightPx);
+        Assert.Equal(3, input.Binning);
+        Assert.Equal(2.5, input.Seeing);
+    }
+
+    [Fact]
+    public void PresetBase_HasUniqueId()
+    {
+        var preset1 = new TelescopePreset();
+        var preset2 = new TelescopePreset();
+
+        Assert.NotEqual(preset1.Id, preset2.Id);
+        Assert.False(string.IsNullOrEmpty(preset1.Id));
+    }
+
+    [Fact]
+    public void PresetBase_HasCreatedAt()
+    {
+        var before = DateTime.UtcNow;
+        var preset = new CameraPreset();
+        var after = DateTime.UtcNow;
+
+        Assert.True(preset.CreatedAt >= before);
+        Assert.True(preset.CreatedAt <= after);
+    }
+
+    [Fact]
+    public void TelescopePreset_WithNullAperture()
+    {
+        var input = new CalculatorInput { ApertureDiameter = null };
+
+        var preset = TelescopePreset.FromInput(input, "Test");
+
+        Assert.Null(preset.ApertureDiameter);
+
+        var newInput = new CalculatorInput { ApertureDiameter = 200 };
+        preset.ApplyTo(newInput);
+
+        Assert.Null(newInput.ApertureDiameter);
+    }
+
+    [Fact]
+    public void FullRigPreset_WithNullAperture()
+    {
+        var input = new CalculatorInput { ApertureDiameter = null };
+
+        var preset = FullRigPreset.FromInput(input, "Test");
+
+        Assert.Null(preset.ApertureDiameter);
+
+        var newInput = new CalculatorInput { ApertureDiameter = 200 };
+        preset.ApplyTo(newInput);
+
+        Assert.Null(newInput.ApertureDiameter);
+    }
+
+    [Fact]
+    public void PresetCollection_DefaultsToEmptyLists()
+    {
+        var collection = new PresetCollection();
+
+        Assert.NotNull(collection.Telescopes);
+        Assert.NotNull(collection.Cameras);
+        Assert.NotNull(collection.FullRigs);
+        Assert.Empty(collection.Telescopes);
+        Assert.Empty(collection.Cameras);
+        Assert.Empty(collection.FullRigs);
+    }
+
+    [Fact]
+    public void PresetCollection_HasVersion()
+    {
+        var collection = new PresetCollection();
+
+        Assert.Equal(1, collection.Version);
+    }
+}

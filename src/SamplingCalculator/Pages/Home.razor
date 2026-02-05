@@ -11,6 +11,8 @@
         <p class="subtitle">Camera &times; Telescope sampling evaluator for astrophotography</p>
     </header>
 
+    <PresetsPanel Input="InputA" OnPresetLoaded="OnPresetLoaded" />
+
     <div class="compare-toggle-container">
         <label class="compare-toggle">
             <input type="checkbox" @bind="CompareMode" @bind:after="OnCompareModeChanged" />
@@ -63,6 +65,11 @@
     private void CopyAToB()
     {
         InputB.CopyFrom(InputA);
+        StateHasChanged();
+    }
+
+    private void OnPresetLoaded()
+    {
         StateHasChanged();
     }
 }
