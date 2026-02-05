@@ -1,0 +1,53 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Publish
+        run: dotnet publish src/SamplingCalculator/SamplingCalculator.csproj -c Release -o release
+
+      # Hack for GitHub Pages SPA routing
+      - name: Copy index.html to 404.html
+        run: cp release/wwwroot/index.html release/wwwroot/404.html
+
+      # Rewrite base href
+      - name: Rewrite base href
+        uses: jacobtomlinson/gha-find-replace@v3
+        with:
+          find: '<base href="/" />'
+          replace: '<base href="/Sampling-calculator/" />'
+          include: 'release/wwwroot/index.html'
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'release/wwwroot'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
