@@ -228,7 +228,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 13,
     "title": "Dokumentace a README",
     "description": "Vytvořit README.md v root projektu: popis projektu a jeho účelu, screenshot aplikace, instrukce pro build a spuštění (dotnet build, dotnet run), instrukce pro spuštění testů, technický stack a architektura, license (MIT).",
-    "passes": false
+    "passes": true
   },
   {
     "id": 14,
