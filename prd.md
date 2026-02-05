@@ -154,88 +154,10 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
 [
   {
     "id": 1,
-    "title": "Scaffold Blazor WASM app + basic project structure",
-    "description": "Create a Blazor WebAssembly app with a clean folder structure (Pages, Components, Services, Models). Add a minimal home page shell with Inputs and Results sections. Verify with dotnet build.",
+    "title": "Run UI tests and fix issues",
+    "description": "Pusť UI testy a oprav problémy, pokud nějaké neprojdou, případně oprav testy, pokud by chyba byla v nich. ",
     "passes": true
   },
-  {
-    "id": 2,
-    "title": "Implement calculation engine with unit-tested formulas",
-    "description": "Create a pure C# calculator library/class that computes effective focal length, pixel scale (arcsec/px), and FOV (deg + arcmin). Add xUnit tests for representative cases, including binning and reducer/barlow effects. Verify with dotnet test.",
-    "passes": true
-  },
-  {
-    "id": 3,
-    "title": "Add sampling classification logic (under/optimal/over) based on seeing",
-    "description": "Implement DSO seeing-based classification using thresholds around seeing/2 and seeing/3. Return status + recommended target range. Unit test boundary conditions.",
-    "passes": true
-  },
-  {
-    "id": 4,
-    "title": "Build input form components with validation and sensible defaults",
-    "description": "Create reusable input components (numeric with units, select for binning, toggles for reducer/barlow). Add validation (non-negative, non-zero focal length, reasonable ranges) and inline helper tooltips.",
-    "passes": true
-  },
-  {
-    "id": 5,
-    "title": "Create results UI with clear hierarchy and responsive layout",
-    "description": "Design a Results card showing pixel scale, FOV, effective focal length, and sampling badge. Ensure mobile/desktop responsive behavior and accessible labeling.",
-    "passes": true
-  },
-  {
-    "id": 6,
-    "title": "Add comparison mode (Setup A vs Setup B)",
-    "description": "Implement a lightweight compare mode that duplicates the state and renders two result panels side-by-side on desktop (stacked on mobile). Include a 'Copy A to B' action.",
-    "passes": true
-  },
-  {
-    "id": 7,
-    "title": "Persist presets in LocalStorage",
-    "description": "Add save/load/delete preset functionality for camera, telescope, and full rig. Use LocalStorage. Provide a simple presets UI and handle invalid/old data gracefully.",
-    "passes": true
-  },
-  {
-    "id": 8,
-    "title": "Shareable URL state (query string sync)",
-    "description": "Encode current calculator state into the URL query string and restore it on load. Ensure that invalid parameters fall back to defaults without crashing.",
-    "passes": true
-  },
-  {
-    "id": 9,
-    "title": "Astronomical theme (dark-first) + accessibility pass",
-    "description": "Implement a modern astro look (dark palette, subtle starfield background, glass cards, consistent spacing/typography). Ensure keyboard navigation, focus states, and contrast compliance for key elements.",
-    "passes": true
-  },
-  {
-    "id": 10,
-    "title": "SEO a metadata",
-    "description": "Přidat SEO metadata do wwwroot/index.html a komponent: title, description, og:tags pro social sharing, favicon (astronomický motiv), manifest.json pro PWA ready (volitelně), správné lang atributy.",
-    "passes": true
-  },
-  {
-    "id": 11,
-    "title": "Error handling a edge cases",
-    "description": "Implementovat robustní error handling: validace vstupů (žádné záporné hodnoty, rozumné rozsahy), graceful handling neplatných kombinací, user-friendly error messages, fallback hodnoty pro edge cases.",
-    "passes": true
-  },
-  {
-    "id": 12,
-    "title": "Performance optimalizace",
-    "description": "Optimalizovat performance: lazy loading komponent kde vhodné, debounce na input změny (aby se nepočítalo při každém stisku klávesy), minimalizace re-renderů, AOT compilation setup pro menší bundle size.",
-    "passes": true
-  },
-  {
-    "id": 13,
-    "title": "Dokumentace a README",
-    "description": "Vytvořit README.md v root projektu: popis projektu a jeho účelu, screenshot aplikace, instrukce pro build a spuštění (dotnet build, dotnet run), instrukce pro spuštění testů, technický stack a architektura, license (MIT).",
-    "passes": true
-  },
-  {
-    "id": 14,
-    "title": "Finální QA a code cleanup",
-    "description": "Provést finální kontrolu: odstranit unused code a komentáře, konzistentní formátování (dotnet format), zkontrolovat všechny TODO komentáře, ověřit že všechny testy prochází (dotnet test), ověřit produkční build (dotnet publish).",
-    "passes": false
-  }
 ]
 ```
 
