@@ -192,7 +192,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 7,
     "title": "Persist presets in LocalStorage",
     "description": "Add save/load/delete preset functionality for camera, telescope, and full rig. Use LocalStorage. Provide a simple presets UI and handle invalid/old data gracefully.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 8,
@@ -208,8 +208,32 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
   },
   {
     "id": 10,
-    "title": "Local verification checklist and minimal documentation",
-    "description": "Add a README with local run/build/test instructions and a short explanation of formulas/assumptions. Confirm dotnet build and dotnet test are sufficient verification steps.",
+    "title": "SEO a metadata",
+    "description": "Přidat SEO metadata do wwwroot/index.html a komponent: title, description, og:tags pro social sharing, favicon (astronomický motiv), manifest.json pro PWA ready (volitelně), správné lang atributy.",
+    "passes": false
+  },
+  {
+    "id": 11,
+    "title": "Error handling a edge cases",
+    "description": "Implementovat robustní error handling: validace vstupů (žádné záporné hodnoty, rozumné rozsahy), graceful handling neplatných kombinací, user-friendly error messages, fallback hodnoty pro edge cases.",
+    "passes": false
+  },
+  {
+    "id": 12,
+    "title": "Performance optimalizace",
+    "description": "Optimalizovat performance: lazy loading komponent kde vhodné, debounce na input změny (aby se nepočítalo při každém stisku klávesy), minimalizace re-renderů, AOT compilation setup pro menší bundle size.",
+    "passes": false
+  },
+  {
+    "id": 13,
+    "title": "Dokumentace a README",
+    "description": "Vytvořit README.md v root projektu: popis projektu a jeho účelu, screenshot aplikace, instrukce pro build a spuštění (dotnet build, dotnet run), instrukce pro spuštění testů, technický stack a architektura, license (MIT).",
+    "passes": false
+  },
+  {
+    "id": 14,
+    "title": "Finální QA a code cleanup",
+    "description": "Provést finální kontrolu: odstranit unused code a komentáře, konzistentní formátování (dotnet format), zkontrolovat všechny TODO komentáře, ověřit že všechny testy prochází (dotnet test), ověřit produkční build (dotnet publish).",
     "passes": false
   }
 ]

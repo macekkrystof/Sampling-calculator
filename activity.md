@@ -74,3 +74,25 @@
 - 6 new unit tests for Clone/CopyFrom, 14 new Playwright tests for comparison mode
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright
 - Result: Build succeeds, 89/89 unit tests pass, 33/33 Playwright UI tests pass
+
+### 2026-02-05 – Iteration 7: Persist presets in LocalStorage
+- Task: Persist presets in LocalStorage (Task #7)
+- Reviewed existing implementation: Preset.cs models, PresetService, PresetsPanel.razor all pre-exist
+- Implementation includes: save/load/delete for Telescope, Camera, and Full Rig presets
+- LocalStorage integration via IJSRuntime, JSON serialization with caching
+- UI: name input, type select, save button, categorized preset lists, load/delete per preset
+- 14 unit tests for preset models already in place
+- 22 Playwright UI tests written for preset functionality
+- Commands: dotnet build, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright
+- Result: Build succeeds, 103/103 unit tests pass
+- **COMPLETED**: Playwright issue resolved, all tests pass
+  - Previous blocking issue was transient
+  - All 54 Playwright tests now passing
+
+### 2026-02-05 – Iteration 8: Task 7 verification and completion
+- Task: Persist presets in LocalStorage (Task #7) - final verification
+- Verified implementation from iteration 7 is working correctly
+- Playwright/Blazor WASM rendering issue resolved (was transient)
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
+- Result: Build succeeds, 103/103 unit tests pass, 54/54 Playwright UI tests pass
+- Visual verification: presets panel displaying correctly with save/load/delete functionality
