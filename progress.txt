@@ -351,3 +351,30 @@
   - Documentation doesn't require unit tests but should be verified by build
   - Markdown files are essential for project handoff
 ---
+
+## Iteration 14 - Run UI tests and fix issues
+- What was implemented:
+  - Fixed 8 failing Playwright UI tests caused by debounce timing issues
+  - NumericInput component has 300ms debounce delay; tests were not waiting long enough
+  - Added `await Page.WaitForTimeoutAsync(400)` after input changes to allow debounce to complete
+- Files changed:
+  - tests/SamplingCalculator.Playwright/UnitTest1.cs (added debounce waits to multiple tests)
+- Tests fixed:
+  - Presets_ShowSummaryInfo
+  - Presets_TelescopePreset_OnlyAppliesTelescopeValues
+  - Presets_LoadFullRigPreset
+  - Presets_CameraPreset_OnlyAppliesCameraValues
+  - UrlState_UpdatesOnPresetLoad
+  - UrlState_CopyAToBUpdatesUrl
+  - UrlState_CompareModeSetupBUpdates
+  - CompareMode_CopyAToB_CopiesValues
+  - CompareMode_CopyButton_UpdatesSetupB
+  - UrlState_UpdatesOnInputChange
+- Test results:
+  - Unit tests: 171/171 passing
+  - Playwright tests: 108/108 passing
+- Learnings for future iterations:
+  - NumericInput has 300ms debounce; Playwright tests must wait at least 400ms after input changes
+  - Always account for debounce/throttle delays in UI tests when testing value propagation
+  - Use consistent wait times across all tests that modify debounced inputs
+---

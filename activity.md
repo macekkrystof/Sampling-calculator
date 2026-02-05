@@ -153,3 +153,11 @@
 - Verified build and unit tests
 - Commands: dotnet build, dotnet test tests/SamplingCalculator.Tests
 - Result: Build succeeds, 171/171 unit tests pass
+
+### 2026-02-05 – Iteration 14: Run UI tests and fix issues
+- Task: Run UI tests and fix issues (Task #1)
+- Found 8 failing Playwright UI tests due to debounce timing
+- NumericInput component has 300ms debounce; tests were not waiting long enough
+- Added `await Page.WaitForTimeoutAsync(400)` after input changes in affected tests
+- Commands: dotnet run --project src/SamplingCalculator --urls "http://localhost:5173", dotnet test tests/SamplingCalculator.Playwright, dotnet test tests/SamplingCalculator.Tests
+- Result: Build succeeds, 171/171 unit tests pass, 108/108 Playwright UI tests pass

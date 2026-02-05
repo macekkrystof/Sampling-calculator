@@ -403,6 +403,9 @@ public class ComparisonModeTests : PageTest
         await focalLengthA.FillAsync("1200");
         await focalLengthA.DispatchEventAsync("input");
 
+        // Wait for debounce (NumericInput has 300ms debounce)
+        await Page.WaitForTimeoutAsync(400);
+
         // Enable compare mode
         await Page.Locator("input[type='checkbox']").ClickAsync();
 
@@ -441,6 +444,9 @@ public class ComparisonModeTests : PageTest
         var focalLengthA = Page.Locator("#a-focalLength");
         await focalLengthA.FillAsync("2000");
         await focalLengthA.DispatchEventAsync("input");
+
+        // Wait for debounce
+        await Page.WaitForTimeoutAsync(400);
 
         var binningA = Page.Locator("#a-binning");
         await binningA.SelectOptionAsync("2");
@@ -672,6 +678,9 @@ public class PresetsTests : PageTest
         await focalLength.FillAsync("1200");
         await focalLength.DispatchEventAsync("input");
 
+        // Wait for debounce
+        await Page.WaitForTimeoutAsync(400);
+
         // Save preset
         var nameInput = Page.Locator("#preset-name");
         await nameInput.FillAsync("My Full Rig");
@@ -750,6 +759,9 @@ public class PresetsTests : PageTest
         await pixelSize.FillAsync("4.5");
         await pixelSize.DispatchEventAsync("input");
 
+        // Wait for debounce
+        await Page.WaitForTimeoutAsync(400);
+
         var nameInput = Page.Locator("#preset-name");
         await nameInput.FillAsync("Test Rig");
         await Page.Locator(".save-preset-btn").ClickAsync();
@@ -757,8 +769,11 @@ public class PresetsTests : PageTest
         // Reset values
         await focalLength.FillAsync("800");
         await focalLength.DispatchEventAsync("input");
+        await Page.WaitForTimeoutAsync(400);
+
         await pixelSize.FillAsync("3.76");
         await pixelSize.DispatchEventAsync("input");
+        await Page.WaitForTimeoutAsync(400);
 
         // Load the preset
         await Page.Locator(".preset-load-btn:has-text('Test Rig')").ClickAsync();
@@ -818,6 +833,9 @@ public class PresetsTests : PageTest
         var focalLength = Page.Locator("#single-focalLength");
         await focalLength.FillAsync("1200");
         await focalLength.DispatchEventAsync("input");
+
+        // Wait for debounce to propagate value (NumericInput has 300ms debounce)
+        await Page.WaitForTimeoutAsync(400);
 
         // Save as Full Rig
         var nameInput = Page.Locator("#preset-name");
@@ -897,6 +915,9 @@ public class PresetsTests : PageTest
         await pixelSize.FillAsync("5.0");
         await pixelSize.DispatchEventAsync("input");
 
+        // Wait for debounce
+        await Page.WaitForTimeoutAsync(400);
+
         // Save as telescope preset (captures telescope values)
         var typeSelect = Page.Locator("#preset-type");
         await typeSelect.SelectOptionAsync("Telescope");
@@ -905,6 +926,9 @@ public class PresetsTests : PageTest
         await focalLength.FillAsync("1500");
         await focalLength.DispatchEventAsync("input");
 
+        // Wait for debounce
+        await Page.WaitForTimeoutAsync(400);
+
         var nameInput = Page.Locator("#preset-name");
         await nameInput.FillAsync("Scope Only");
         await Page.Locator(".save-preset-btn").ClickAsync();
@@ -912,8 +936,11 @@ public class PresetsTests : PageTest
         // Reset telescope values, keep camera values different
         await focalLength.FillAsync("800");
         await focalLength.DispatchEventAsync("input");
+        await Page.WaitForTimeoutAsync(400);
+
         await pixelSize.FillAsync("3.76");
         await pixelSize.DispatchEventAsync("input");
+        await Page.WaitForTimeoutAsync(400);
 
         // Load telescope preset
         await Page.Locator(".preset-load-btn:has-text('Scope Only')").ClickAsync();
@@ -943,6 +970,9 @@ public class PresetsTests : PageTest
         await pixelSize.FillAsync("4.5");
         await pixelSize.DispatchEventAsync("input");
 
+        // Wait for debounce
+        await Page.WaitForTimeoutAsync(400);
+
         var nameInput = Page.Locator("#preset-name");
         await nameInput.FillAsync("Camera Only");
         await Page.Locator(".save-preset-btn").ClickAsync();
@@ -950,8 +980,11 @@ public class PresetsTests : PageTest
         // Reset camera values, keep telescope values different
         await pixelSize.FillAsync("3.76");
         await pixelSize.DispatchEventAsync("input");
+        await Page.WaitForTimeoutAsync(400);
+
         await focalLength.FillAsync("800");
         await focalLength.DispatchEventAsync("input");
+        await Page.WaitForTimeoutAsync(400);
 
         // Load camera preset
         await Page.Locator(".preset-load-btn:has-text('Camera Only')").ClickAsync();
@@ -1170,8 +1203,8 @@ public class UrlStateTests : PageTest
         await focalLength.FillAsync("1200");
         await focalLength.DispatchEventAsync("input");
 
-        // Wait for URL to update
-        await Page.WaitForTimeoutAsync(100);
+        // Wait for debounce (NumericInput has 300ms debounce) + URL update
+        await Page.WaitForTimeoutAsync(400);
 
         // URL should contain the new value
         var currentUrl = Page.Url;
@@ -1249,6 +1282,9 @@ public class UrlStateTests : PageTest
         await focalLength.FillAsync("1500");
         await focalLength.DispatchEventAsync("input");
 
+        // Wait for debounce (NumericInput has 300ms debounce)
+        await Page.WaitForTimeoutAsync(400);
+
         var nameInput = Page.Locator("#preset-name");
         await nameInput.FillAsync("URL Test Preset");
         await Page.Locator(".save-preset-btn").ClickAsync();
@@ -1256,15 +1292,13 @@ public class UrlStateTests : PageTest
         // Reset focal length
         await focalLength.FillAsync("800");
         await focalLength.DispatchEventAsync("input");
+        await Page.WaitForTimeoutAsync(400);
 
         // Load preset
         await Page.Locator(".preset-load-btn:has-text('URL Test Preset')").ClickAsync();
 
-        await Page.WaitForTimeoutAsync(100);
-
         // URL should reflect loaded preset value
-        var currentUrl = Page.Url;
-        Assert.That(currentUrl, Does.Contain("fl=1500"));
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("fl=1500"));
     }
 
     [Test]
@@ -1278,10 +1312,10 @@ public class UrlStateTests : PageTest
         await focalLengthB.FillAsync("2000");
         await focalLengthB.DispatchEventAsync("input");
 
-        await Page.WaitForTimeoutAsync(100);
+        // Wait for debounce
+        await Page.WaitForTimeoutAsync(400);
 
-        var currentUrl = Page.Url;
-        Assert.That(currentUrl, Does.Contain("bfl=2000"));
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("bfl=2000"));
     }
 
     [Test]
@@ -1293,11 +1327,11 @@ public class UrlStateTests : PageTest
         // Click copy button
         await Page.Locator(".copy-btn").ClickAsync();
 
-        await Page.WaitForTimeoutAsync(100);
+        // Wait for URL to update
+        await Page.WaitForTimeoutAsync(200);
 
-        var currentUrl = Page.Url;
         // Setup B should now have same focal length
-        Assert.That(currentUrl, Does.Contain("bfl=1200"));
+        await Expect(Page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("bfl=1200"));
     }
 }
 
