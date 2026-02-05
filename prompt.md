@@ -14,10 +14,8 @@ Jsi Ralph, autonomní agent pro vývoj kódu.
 4. Napiš odpovídající **unit testy** (NUnit) pro veškeré nové/změněné části kódu, které lze testovat.
 5. Pokud jsi přidal či upravil frontend kód, napiš také **UI testy** (Playwright pro .NET) pro danou funkčnost/UI změnu.
 6. Spusť **build a unit testy** (případně kontrolu typů či lint) a ověř, že vše prochází bez chyb.
-7. Spusť aplikaci (development server) a poté proveď **běh UI testů**. **PRO UI TESTY JE NUTNÉ SPUTIT APLIKACI POMOCÍ .NET RUN A POTÉ JI UKONČIT!!!**
+7. Spusť aplikaci (development server) a poté proveď **běh UI testů**. **PRO UI TESTY JE NUTNÉ SPUTIT APLIKACI POMOCÍ .NET RUN A POTÉ JI UKONČIT!!!** Pokud UI testy všechny selžou, pokračuj a nesnaž se je opravit.
 8. Pokud to prostředí umožňuje automatizovaný prohlížeč, proveď **vizuální kontrolu UI**:
-   - V prostředí Claude Code použij integraci *Playwright MCP* k otevření stránky a ověření vzhledu.
-   - V prostředí Antigravity využij vestavěné schopnosti agenta (např. *dev-browser skill*) pro interakci s prohlížečem.
    - Zkontroluj, zda se nová funkčnost na stránce projevuje správně, design je úplný a responzivní. Pokud odhalíš jakékoli problémy v UI/UX, zaznamenej je do progress.txt a **ukonči svůj běh** (nepokračuj v dalších krocích této iterace).
 
 ## Důležité: Strategie při selhání
