@@ -996,3 +996,307 @@ public class PresetsTests : PageTest
         Assert.That(ariaLabel, Does.Contain("Load Me"));
     }
 }
+
+// --- Task 8: URL State Tests ---
+
+[Parallelizable(ParallelScope.Self)]
+[TestFixture]
+public class UrlStateTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5173";
+
+    public override BrowserNewContextOptions ContextOptions()
+    {
+        return new BrowserNewContextOptions
+        {
+            IgnoreHTTPSErrors = true,
+        };
+    }
+
+    private async Task WaitForBlazorAsync()
+    {
+        await Page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("Sampling Calculator",
+            new() { Timeout = 30000 });
+    }
+
+    [Test]
+    public async Task ShareButton_IsVisible()
+    {
+        await Page.GotoAsync(BaseUrl);
+        await WaitForBlazorAsync();
+
+        var shareBtn = Page.Locator(".share-btn");
+        await Expect(shareBtn).ToBeVisibleAsync();
+        await Expect(shareBtn).ToContainTextAsync("Share");
+    }
+
+    [Test]
+    public async Task ShareButton_ShowsCopiedOnClick()
+    {
+        await Page.GotoAsync(BaseUrl);
+        await WaitForBlazorAsync();
+
+        // Grant clipboard permissions
+        await Context.GrantPermissionsAsync(new[] { "clipboard-write", "clipboard-read" });
+
+        var shareBtn = Page.Locator(".share-btn");
+        await shareBtn.ClickAsync();
+
+        // Button should temporarily show "Copied!"
+        await Expect(shareBtn).ToContainTextAsync("Copied!");
+    }
+
+    [Test]
+    public async Task UrlState_LoadsWithQueryParams()
+    {
+        // Navigate with query params
+        await Page.GotoAsync($"{BaseUrl}/?fl=1200&px=5&bin=2");
+        await WaitForBlazorAsync();
+
+        // Values should be set from URL
+        var focalLength = Page.Locator("#single-focalLength");
+        await Expect(focalLength).ToHaveValueAsync("1200");
+
+        var pixelSize = Page.Locator("#single-pixelSize");
+        await Expect(pixelSize).ToHaveValueAsync("5");
+
+        var binning = Page.Locator("#single-binning");
+        await Expect(binning).ToHaveValueAsync("2");
+    }
+
+    [Test]
+    public async Task UrlState_LoadsSeeing()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?see=3.5");
+        await WaitForBlazorAsync();
+
+        var seeing = Page.Locator("#single-seeing");
+        await Expect(seeing).ToHaveValueAsync("3.5");
+    }
+
+    [Test]
+    public async Task UrlState_LoadsReducerAndBarlow()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?rd=0.7&bl=2");
+        await WaitForBlazorAsync();
+
+        var reducer = Page.Locator("#single-reducer");
+        await Expect(reducer).ToHaveValueAsync("0.7");
+
+        var barlow = Page.Locator("#single-barlow");
+        await Expect(barlow).ToHaveValueAsync("2");
+    }
+
+    [Test]
+    public async Task UrlState_LoadsAperture()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?ap=250");
+        await WaitForBlazorAsync();
+
+        var aperture = Page.Locator("#single-aperture");
+        await Expect(aperture).ToHaveValueAsync("250");
+    }
+
+    [Test]
+    public async Task UrlState_LoadsSensorDimensions()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?sw=4096&sh=2160");
+        await WaitForBlazorAsync();
+
+        var sensorWidth = Page.Locator("#single-sensorWidth");
+        await Expect(sensorWidth).ToHaveValueAsync("4096");
+
+        var sensorHeight = Page.Locator("#single-sensorHeight");
+        await Expect(sensorHeight).ToHaveValueAsync("2160");
+    }
+
+    [Test]
+    public async Task UrlState_LoadsCompareMode()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?cmp=1");
+        await WaitForBlazorAsync();
+
+        // Compare mode should be enabled
+        var toggle = Page.Locator("input[type='checkbox']");
+        await Expect(toggle).ToBeCheckedAsync();
+
+        // Should see two input panels
+        var inputPanels = Page.Locator(".inputs-panel");
+        await Expect(inputPanels).ToHaveCountAsync(2);
+    }
+
+    [Test]
+    public async Task UrlState_LoadsSetupBValues()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?cmp=1&fl=1000&bfl=1500&bbin=2");
+        await WaitForBlazorAsync();
+
+        // Setup A values
+        var focalLengthA = Page.Locator("#a-focalLength");
+        await Expect(focalLengthA).ToHaveValueAsync("1000");
+
+        // Setup B values
+        var focalLengthB = Page.Locator("#b-focalLength");
+        await Expect(focalLengthB).ToHaveValueAsync("1500");
+
+        var binningB = Page.Locator("#b-binning");
+        await Expect(binningB).ToHaveValueAsync("2");
+    }
+
+    [Test]
+    public async Task UrlState_InvalidParamsUseDefaults()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?fl=invalid&bin=10");
+        await WaitForBlazorAsync();
+
+        // Invalid focal length should fall back to default
+        var focalLength = Page.Locator("#single-focalLength");
+        await Expect(focalLength).ToHaveValueAsync("800");
+
+        // Out of range binning should fall back to default
+        var binning = Page.Locator("#single-binning");
+        await Expect(binning).ToHaveValueAsync("1");
+    }
+
+    [Test]
+    public async Task UrlState_UpdatesOnInputChange()
+    {
+        await Page.GotoAsync(BaseUrl);
+        await WaitForBlazorAsync();
+
+        // Change focal length
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("1200");
+        await focalLength.DispatchEventAsync("input");
+
+        // Wait for URL to update
+        await Page.WaitForTimeoutAsync(100);
+
+        // URL should contain the new value
+        var currentUrl = Page.Url;
+        Assert.That(currentUrl, Does.Contain("fl=1200"));
+    }
+
+    [Test]
+    public async Task UrlState_UpdatesOnBinningChange()
+    {
+        await Page.GotoAsync(BaseUrl);
+        await WaitForBlazorAsync();
+
+        await Page.Locator("#single-binning").SelectOptionAsync("3");
+
+        await Page.WaitForTimeoutAsync(100);
+
+        var currentUrl = Page.Url;
+        Assert.That(currentUrl, Does.Contain("bin=3"));
+    }
+
+    [Test]
+    public async Task UrlState_UpdatesOnCompareModeToggle()
+    {
+        await Page.GotoAsync(BaseUrl);
+        await WaitForBlazorAsync();
+
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        await Page.WaitForTimeoutAsync(100);
+
+        var currentUrl = Page.Url;
+        Assert.That(currentUrl, Does.Contain("cmp=1"));
+    }
+
+    [Test]
+    public async Task UrlState_DefaultValuesNotInUrl()
+    {
+        await Page.GotoAsync(BaseUrl);
+        await WaitForBlazorAsync();
+
+        // With defaults, URL should be clean (no query params)
+        var currentUrl = Page.Url;
+        Assert.That(currentUrl, Does.Not.Contain("fl=800")); // Default focal length not in URL
+        Assert.That(currentUrl, Does.Not.Contain("bin=1")); // Default binning not in URL
+    }
+
+    [Test]
+    public async Task UrlState_SharedUrlLoadsCorrectState()
+    {
+        // Create a complex URL with multiple params
+        var url = $"{BaseUrl}/?fl=1200&ap=250&rd=0.8&bl=1.5&px=4.5&sw=4096&sh=2160&bin=2&see=2.5";
+        await Page.GotoAsync(url);
+        await WaitForBlazorAsync();
+
+        // Verify all values loaded correctly
+        await Expect(Page.Locator("#single-focalLength")).ToHaveValueAsync("1200");
+        await Expect(Page.Locator("#single-aperture")).ToHaveValueAsync("250");
+        await Expect(Page.Locator("#single-reducer")).ToHaveValueAsync("0.8");
+        await Expect(Page.Locator("#single-barlow")).ToHaveValueAsync("1.5");
+        await Expect(Page.Locator("#single-pixelSize")).ToHaveValueAsync("4.5");
+        await Expect(Page.Locator("#single-sensorWidth")).ToHaveValueAsync("4096");
+        await Expect(Page.Locator("#single-sensorHeight")).ToHaveValueAsync("2160");
+        await Expect(Page.Locator("#single-binning")).ToHaveValueAsync("2");
+        await Expect(Page.Locator("#single-seeing")).ToHaveValueAsync("2.5");
+    }
+
+    [Test]
+    public async Task UrlState_UpdatesOnPresetLoad()
+    {
+        await Page.GotoAsync(BaseUrl);
+        await WaitForBlazorAsync();
+
+        // Save a preset
+        var focalLength = Page.Locator("#single-focalLength");
+        await focalLength.FillAsync("1500");
+        await focalLength.DispatchEventAsync("input");
+
+        var nameInput = Page.Locator("#preset-name");
+        await nameInput.FillAsync("URL Test Preset");
+        await Page.Locator(".save-preset-btn").ClickAsync();
+
+        // Reset focal length
+        await focalLength.FillAsync("800");
+        await focalLength.DispatchEventAsync("input");
+
+        // Load preset
+        await Page.Locator(".preset-load-btn:has-text('URL Test Preset')").ClickAsync();
+
+        await Page.WaitForTimeoutAsync(100);
+
+        // URL should reflect loaded preset value
+        var currentUrl = Page.Url;
+        Assert.That(currentUrl, Does.Contain("fl=1500"));
+    }
+
+    [Test]
+    public async Task UrlState_CompareModeSetupBUpdates()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?cmp=1");
+        await WaitForBlazorAsync();
+
+        // Change Setup B values
+        var focalLengthB = Page.Locator("#b-focalLength");
+        await focalLengthB.FillAsync("2000");
+        await focalLengthB.DispatchEventAsync("input");
+
+        await Page.WaitForTimeoutAsync(100);
+
+        var currentUrl = Page.Url;
+        Assert.That(currentUrl, Does.Contain("bfl=2000"));
+    }
+
+    [Test]
+    public async Task UrlState_CopyAToBUpdatesUrl()
+    {
+        await Page.GotoAsync($"{BaseUrl}/?cmp=1&fl=1200");
+        await WaitForBlazorAsync();
+
+        // Click copy button
+        await Page.Locator(".copy-btn").ClickAsync();
+
+        await Page.WaitForTimeoutAsync(100);
+
+        var currentUrl = Page.Url;
+        // Setup B should now have same focal length
+        Assert.That(currentUrl, Does.Contain("bfl=1200"));
+    }
+}

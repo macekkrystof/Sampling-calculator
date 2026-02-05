@@ -2,6 +2,8 @@
 @using SamplingCalculator.Models
 @using SamplingCalculator.Services
 @using SamplingCalculator.Components
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>Sampling Calculator</PageTitle>
 
@@ -24,17 +26,27 @@
                 Copy A &rarr; B
             </button>
         }
+        <button class="share-btn" @onclick="ShareUrl" aria-label="Copy shareable link to clipboard">
+            @if (_shareButtonText == "Copied!")
+            {
+                <span class="share-success">@_shareButtonText</span>
+            }
+            else
+            {
+                @_shareButtonText
+            }
+        </button>
     </div>
 
     @if (CompareMode)
     {
         <div class="compare-layout">
             <div class="setup-column setup-a">
-                <InputPanel SetupLabel="Setup A" IdPrefix="a" Input="InputA" OnInputChanged="StateHasChanged" />
+                <InputPanel SetupLabel="Setup A" IdPrefix="a" Input="InputA" OnInputChanged="OnInputChanged" />
                 <ResultsPanel ResultsLabel="Results A" IdPrefix="a" Input="InputA" Compact="true" />
             </div>
             <div class="setup-column setup-b">
-                <InputPanel SetupLabel="Setup B" IdPrefix="b" Input="InputB" OnInputChanged="StateHasChanged" />
+                <InputPanel SetupLabel="Setup B" IdPrefix="b" Input="InputB" OnInputChanged="OnInputChanged" />
                 <ResultsPanel ResultsLabel="Results B" IdPrefix="b" Input="InputB" Compact="true" />
             </div>
         </div>
@@ -42,7 +54,7 @@
     else
     {
         <div class="calculator-layout">
-            <InputPanel SetupLabel="Setup" IdPrefix="single" Input="InputA" OnInputChanged="StateHasChanged" />
+            <InputPanel SetupLabel="Setup" IdPrefix="single" Input="InputA" OnInputChanged="OnInputChanged" />
             <ResultsPanel ResultsLabel="Results" IdPrefix="single" Input="InputA" />
         </div>
     }
@@ -52,6 +64,25 @@
     private CalculatorInput InputA { get; set; } = new();
     private CalculatorInput InputB { get; set; } = new();
     private bool CompareMode { get; set; } = false;
+    private string _shareButtonText = "Share";
+    private bool _isInitialized = false;
+
+    protected override void OnInitialized()
+    {
+        // Decode state from URL on initial load
+        var uri = new Uri(NavigationManager.Uri);
+        var queryString = uri.Query;
+
+        if (!string.IsNullOrWhiteSpace(queryString))
+        {
+            var (inputA, inputB, compareMode) = UrlStateService.DecodeState(queryString);
+            InputA = inputA;
+            InputB = inputB;
+            CompareMode = compareMode;
+        }
+
+        _isInitialized = true;
+    }
 
     private void OnCompareModeChanged()
     {
@@ -60,16 +91,63 @@
             // When entering compare mode, copy A to B as initial state
             InputB.CopyFrom(InputA);
         }
+        UpdateUrl();
     }
 
     private void CopyAToB()
     {
         InputB.CopyFrom(InputA);
+        UpdateUrl();
         StateHasChanged();
     }
 
     private void OnPresetLoaded()
     {
+        UpdateUrl();
         StateHasChanged();
+    }
+
+    private void OnInputChanged()
+    {
+        UpdateUrl();
+        StateHasChanged();
+    }
+
+    private void UpdateUrl()
+    {
+        if (!_isInitialized) return;
+
+        var queryString = UrlStateService.EncodeState(InputA, CompareMode ? InputB : null, CompareMode);
+        var uri = new Uri(NavigationManager.Uri);
+        var newUrl = uri.GetLeftPart(UriPartial.Path) + queryString;
+
+        // Update URL without navigation (replace state)
+        NavigationManager.NavigateTo(newUrl, false, true);
+    }
+
+    private async Task ShareUrl()
+    {
+        var shareableUrl = UrlStateService.BuildShareableUrl(
+            NavigationManager.Uri,
+            InputA,
+            CompareMode ? InputB : null,
+            CompareMode);
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", shareableUrl);
+            _shareButtonText = "Copied!";
+            StateHasChanged();
+
+            // Reset button text after 2 seconds
+            await Task.Delay(2000);
+            _shareButtonText = "Share";
+            StateHasChanged();
+        }
+        catch
+        {
+            // Clipboard API may not be available
+            _shareButtonText = "Share";
+        }
     }
 }

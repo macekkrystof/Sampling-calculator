@@ -212,3 +212,32 @@
   - Playwright headless browser issues can be transient - retry before investigating deeply
   - Visual verification with screenshots helps confirm UI implementation
 ---
+
+## Iteration 9 - Shareable URL state (query string sync)
+- What was implemented:
+  - Created UrlStateService.cs with EncodeState/DecodeState methods for URL query string encoding
+  - Short parameter keys (fl, ap, rd, bl, px, sw, sh, bin, see, cmp) for compact URLs
+  - Setup B values use "b" prefix (bfl, bap, etc.) in compare mode
+  - InvariantCulture used for decimal parsing/formatting (dot decimal separator)
+  - Only non-default values included in URL for compact shareable links
+  - Invalid/out-of-range parameters gracefully fall back to defaults
+  - Integrated with Home.razor: reads URL on init, updates URL on input changes
+  - Share button copies shareable URL to clipboard with "Copied!" feedback
+  - URL updates use NavigationManager.NavigateTo with replace state (no history spam)
+- Files changed:
+  - src/SamplingCalculator/Services/UrlStateService.cs (new)
+  - src/SamplingCalculator/Pages/Home.razor (URL sync integration, Share button)
+  - src/SamplingCalculator/wwwroot/css/app.css (Share button styles)
+  - tests/SamplingCalculator.Tests/UnitTest1.cs (29 new URL state tests)
+  - tests/SamplingCalculator.Playwright/UnitTest1.cs (18 new URL state UI tests)
+  - prd.md (marked task 8 as passes: true)
+- Test results:
+  - Unit tests: 132/132 passing (29 new URL state tests)
+  - Playwright tests: 72/72 passing (18 new URL state tests)
+- Learnings for future iterations:
+  - Use short parameter keys for compact URLs (fl instead of focalLength)
+  - Only encode non-default values to keep URLs minimal
+  - NavigationManager.NavigateTo with replace=true avoids history pollution
+  - InvariantCulture is essential for URL parameter encoding/decoding
+  - Test with non-default values when testing encoding (default values produce empty string)
+---

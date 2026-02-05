@@ -1212,3 +1212,313 @@ public class PresetModelTests
         Assert.Equal(1, collection.Version);
     }
 }
+
+// --- Task 8: URL state encoding/decoding tests ---
+
+public class UrlStateServiceTests
+{
+    [Fact]
+    public void EncodeState_DefaultInputs_ReturnsEmptyString()
+    {
+        var input = new CalculatorInput();
+
+        var result = UrlStateService.EncodeState(input);
+
+        Assert.Equal("", result);
+    }
+
+    [Fact]
+    public void EncodeState_NonDefaultFocalLength_IncludesFl()
+    {
+        var input = new CalculatorInput { BaseFocalLength = 1200 };
+
+        var result = UrlStateService.EncodeState(input);
+
+        Assert.Contains("fl=1200", result);
+    }
+
+    [Fact]
+    public void EncodeState_NonDefaultSeeing_IncludesSee()
+    {
+        var input = new CalculatorInput { Seeing = 3.5 };
+
+        var result = UrlStateService.EncodeState(input);
+
+        Assert.Contains("see=3.5", result);
+    }
+
+    [Fact]
+    public void EncodeState_MultipleNonDefaults_IncludesAll()
+    {
+        var input = new CalculatorInput
+        {
+            BaseFocalLength = 1000,
+            PixelSize = 5.0,
+            Binning = 2
+        };
+
+        var result = UrlStateService.EncodeState(input);
+
+        Assert.Contains("fl=1000", result);
+        Assert.Contains("px=5", result);
+        Assert.Contains("bin=2", result);
+    }
+
+    [Fact]
+    public void EncodeState_CompareMode_IncludesCmp()
+    {
+        var inputA = new CalculatorInput();
+        var inputB = new CalculatorInput();
+
+        var result = UrlStateService.EncodeState(inputA, inputB, compareMode: true);
+
+        Assert.Contains("cmp=1", result);
+    }
+
+    [Fact]
+    public void EncodeState_CompareModeWithDifferentB_IncludesBPrefixedParams()
+    {
+        var inputA = new CalculatorInput();
+        var inputB = new CalculatorInput { BaseFocalLength = 1500 };
+
+        var result = UrlStateService.EncodeState(inputA, inputB, compareMode: true);
+
+        Assert.Contains("cmp=1", result);
+        Assert.Contains("bfl=1500", result);
+    }
+
+    [Fact]
+    public void EncodeState_InvariantCulture_UsesDotDecimalSeparator()
+    {
+        // Use non-default pixel size to ensure it's encoded
+        var input = new CalculatorInput { PixelSize = 4.85 };
+
+        var result = UrlStateService.EncodeState(input);
+
+        Assert.Contains("px=4.85", result);
+        Assert.DoesNotContain(",", result);
+    }
+
+    [Fact]
+    public void DecodeState_EmptyString_ReturnsDefaults()
+    {
+        var (inputA, inputB, compareMode) = UrlStateService.DecodeState("");
+
+        Assert.Equal(800, inputA.BaseFocalLength);
+        Assert.Equal(2.0, inputA.Seeing);
+        Assert.False(compareMode);
+    }
+
+    [Fact]
+    public void DecodeState_ValidFocalLength_ParsesCorrectly()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?fl=1200");
+
+        Assert.Equal(1200, inputA.BaseFocalLength);
+    }
+
+    [Fact]
+    public void DecodeState_ValidSeeing_ParsesCorrectly()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?see=3.5");
+
+        Assert.Equal(3.5, inputA.Seeing);
+    }
+
+    [Fact]
+    public void DecodeState_MultipleParams_ParsesAll()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?fl=1000&px=5&bin=2&see=2.5");
+
+        Assert.Equal(1000, inputA.BaseFocalLength);
+        Assert.Equal(5.0, inputA.PixelSize);
+        Assert.Equal(2, inputA.Binning);
+        Assert.Equal(2.5, inputA.Seeing);
+    }
+
+    [Fact]
+    public void DecodeState_CompareMode_ParsesCmp()
+    {
+        var (_, _, compareMode) = UrlStateService.DecodeState("?cmp=1");
+
+        Assert.True(compareMode);
+    }
+
+    [Fact]
+    public void DecodeState_CompareModeWithB_ParsesBValues()
+    {
+        var (_, inputB, compareMode) = UrlStateService.DecodeState("?cmp=1&bfl=1500&bbin=3");
+
+        Assert.True(compareMode);
+        Assert.Equal(1500, inputB.BaseFocalLength);
+        Assert.Equal(3, inputB.Binning);
+    }
+
+    [Fact]
+    public void DecodeState_InvalidFocalLength_FallsBackToDefault()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?fl=invalid");
+
+        Assert.Equal(800, inputA.BaseFocalLength);
+    }
+
+    [Fact]
+    public void DecodeState_OutOfRangeFocalLength_FallsBackToDefault()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?fl=-100");
+
+        Assert.Equal(800, inputA.BaseFocalLength);
+    }
+
+    [Fact]
+    public void DecodeState_OutOfRangeBinning_FallsBackToDefault()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?bin=10");
+
+        Assert.Equal(1, inputA.Binning);
+    }
+
+    [Fact]
+    public void DecodeState_NegativeSeeing_FallsBackToDefault()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?see=-1");
+
+        Assert.Equal(2.0, inputA.Seeing);
+    }
+
+    [Fact]
+    public void DecodeState_EmptyAperture_SetsNull()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?ap=");
+
+        Assert.Null(inputA.ApertureDiameter);
+    }
+
+    [Fact]
+    public void DecodeState_ValidAperture_ParsesCorrectly()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?ap=250");
+
+        Assert.Equal(250, inputA.ApertureDiameter);
+    }
+
+    [Fact]
+    public void DecodeState_InvariantCulture_ParsesDotDecimals()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?px=3.76");
+
+        Assert.Equal(3.76, inputA.PixelSize);
+    }
+
+    [Fact]
+    public void RoundTrip_AllFields_PreservesValues()
+    {
+        var original = new CalculatorInput
+        {
+            BaseFocalLength = 1200,
+            ApertureDiameter = 250,
+            ReducerFactor = 0.7,
+            BarlowFactor = 2.0,
+            PixelSize = 4.5,
+            SensorWidthPx = 4096,
+            SensorHeightPx = 2160,
+            Binning = 2,
+            Seeing = 3.0
+        };
+
+        var queryString = UrlStateService.EncodeState(original);
+        var (decoded, _, _) = UrlStateService.DecodeState(queryString);
+
+        Assert.Equal(original.BaseFocalLength, decoded.BaseFocalLength);
+        Assert.Equal(original.ApertureDiameter, decoded.ApertureDiameter);
+        Assert.Equal(original.ReducerFactor, decoded.ReducerFactor);
+        Assert.Equal(original.BarlowFactor, decoded.BarlowFactor);
+        Assert.Equal(original.PixelSize, decoded.PixelSize);
+        Assert.Equal(original.SensorWidthPx, decoded.SensorWidthPx);
+        Assert.Equal(original.SensorHeightPx, decoded.SensorHeightPx);
+        Assert.Equal(original.Binning, decoded.Binning);
+        Assert.Equal(original.Seeing, decoded.Seeing);
+    }
+
+    [Fact]
+    public void RoundTrip_CompareMode_PreservesValues()
+    {
+        var inputA = new CalculatorInput { BaseFocalLength = 1000 };
+        var inputB = new CalculatorInput { BaseFocalLength = 1500, Binning = 2 };
+
+        var queryString = UrlStateService.EncodeState(inputA, inputB, compareMode: true);
+        var (decodedA, decodedB, compareMode) = UrlStateService.DecodeState(queryString);
+
+        Assert.True(compareMode);
+        Assert.Equal(1000, decodedA.BaseFocalLength);
+        Assert.Equal(1500, decodedB.BaseFocalLength);
+        Assert.Equal(2, decodedB.Binning);
+    }
+
+    [Fact]
+    public void BuildShareableUrl_CombinesBaseAndQuery()
+    {
+        var input = new CalculatorInput { BaseFocalLength = 1200 };
+
+        var url = UrlStateService.BuildShareableUrl("https://example.com/", input);
+
+        Assert.StartsWith("https://example.com/", url);
+        Assert.Contains("fl=1200", url);
+    }
+
+    [Fact]
+    public void BuildShareableUrl_StripsExistingQuery()
+    {
+        var input = new CalculatorInput { BaseFocalLength = 1200 };
+
+        var url = UrlStateService.BuildShareableUrl("https://example.com/?old=value", input);
+
+        Assert.DoesNotContain("old=value", url);
+        Assert.Contains("fl=1200", url);
+    }
+
+    [Fact]
+    public void DecodeState_WithQuestionMarkPrefix_ParsesCorrectly()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("?fl=1200");
+
+        Assert.Equal(1200, inputA.BaseFocalLength);
+    }
+
+    [Fact]
+    public void DecodeState_WithoutQuestionMarkPrefix_ParsesCorrectly()
+    {
+        var (inputA, _, _) = UrlStateService.DecodeState("fl=1200");
+
+        Assert.Equal(1200, inputA.BaseFocalLength);
+    }
+
+    [Fact]
+    public void DecodeState_ReducerOutOfRange_FallsBackToDefault()
+    {
+        // Reducer must be 0.1-1.0
+        var (inputA, _, _) = UrlStateService.DecodeState("?rd=0.05");
+
+        Assert.Equal(1.0, inputA.ReducerFactor);
+    }
+
+    [Fact]
+    public void DecodeState_BarlowOutOfRange_FallsBackToDefault()
+    {
+        // Barlow must be 0.1-10
+        var (inputA, _, _) = UrlStateService.DecodeState("?bl=15");
+
+        Assert.Equal(1.0, inputA.BarlowFactor);
+    }
+
+    [Fact]
+    public void EncodeState_NullApertureWhenDefaultIsNotNull_IncludesEmptyAp()
+    {
+        var input = new CalculatorInput { ApertureDiameter = null };
+        // Default has ApertureDiameter = 200
+
+        var result = UrlStateService.EncodeState(input);
+
+        Assert.Contains("ap=", result);
+    }
+}

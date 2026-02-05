@@ -198,7 +198,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 8,
     "title": "Shareable URL state (query string sync)",
     "description": "Encode current calculator state into the URL query string and restore it on load. Ensure that invalid parameters fall back to defaults without crashing.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 9,

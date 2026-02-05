@@ -535,6 +535,30 @@ h1:focus {
     box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
 }
 
+.share-btn {
+    padding: 0.4rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+.share-btn:hover {
+    border-color: var(--accent);
+}
+
+.share-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.4);
+}
+
+.share-btn .share-success {
+    color: var(--status-optimal);
+}
+
 /* Compare layout */
 .compare-layout {
     display: grid;

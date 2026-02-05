@@ -96,3 +96,15 @@
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
 - Result: Build succeeds, 103/103 unit tests pass, 54/54 Playwright UI tests pass
 - Visual verification: presets panel displaying correctly with save/load/delete functionality
+
+### 2026-02-05 – Iteration 9: Shareable URL state (query string sync) (Task #8)
+- Task: Shareable URL state (query string sync) (Task #8)
+- Created UrlStateService.cs for URL query string encoding/decoding
+- Short parameter keys (fl, ap, rd, bl, px, sw, sh, bin, see, cmp, b-prefixed for Setup B)
+- Integrated with Home.razor: reads from URL on init, updates URL on input changes
+- Added Share button with clipboard copy and "Copied!" feedback
+- 29 new unit tests for URL state encoding/decoding
+- 18 new Playwright UI tests for URL state functionality
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
+- Result: Build succeeds, 132/132 unit tests pass, 72/72 Playwright UI tests pass
+- Visual verification: URL state loading and Share button working correctly
