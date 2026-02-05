@@ -117,12 +117,12 @@
             </div>
         </section>
 
-        <section class="results-panel">
-            <h2>Results</h2>
+        <section class="results-panel" aria-label="Calculation results">
+            <h2 id="results-heading">Results</h2>
 
             @if (HasValidationErrors)
             {
-                <div class="result-card validation-warning-card">
+                <div class="result-card validation-warning-card" role="alert" aria-live="polite">
                     <p>Please fix the input errors to see results.</p>
                 </div>
             }
@@ -130,69 +130,73 @@
             {
                 var result = Calculator.Calculate(Input);
 
-                <div class="result-card status-card status-@result.Status.ToString().ToLower()">
-                    <span class="status-badge">@FormatStatus(result.Status)</span>
+                <div class="result-card status-card status-@result.Status.ToString().ToLower()" role="status" aria-live="polite">
+                    <span class="status-badge" aria-label="Sampling status: @FormatStatus(result.Status)">@FormatStatus(result.Status)</span>
                     <p class="status-description">@result.StatusMessage</p>
                 </div>
 
                 @if (result.BinningRecommendation is not null || result.CorrectorRecommendation is not null || result.ExtremeWarning is not null)
                 {
-                    <div class="result-card recommendations-card">
-                        <span class="metric-label">Recommendations</span>
-                        @if (result.BinningRecommendation is not null)
-                        {
-                            <p class="recommendation">@result.BinningRecommendation</p>
-                        }
-                        @if (result.CorrectorRecommendation is not null)
-                        {
-                            <p class="recommendation">@result.CorrectorRecommendation</p>
-                        }
-                        @if (result.ExtremeWarning is not null)
-                        {
-                            <p class="warning">⚠ @result.ExtremeWarning</p>
-                        }
+                    <div class="result-card recommendations-card" role="complementary" aria-label="Recommendations">
+                        <h3 class="card-heading">Recommendations</h3>
+                        <ul class="recommendations-list" role="list">
+                            @if (result.BinningRecommendation is not null)
+                            {
+                                <li class="recommendation">@result.BinningRecommendation</li>
+                            }
+                            @if (result.CorrectorRecommendation is not null)
+                            {
+                                <li class="recommendation">@result.CorrectorRecommendation</li>
+                            }
+                            @if (result.ExtremeWarning is not null)
+                            {
+                                <li class="warning" role="alert">@result.ExtremeWarning</li>
+                            }
+                        </ul>
                     </div>
                 }
 
-                <div class="result-card">
-                    <div class="metric">
-                        <span class="metric-label">Pixel Scale</span>
-                        <span class="metric-value">@result.PixelScale.ToString("F2") ″/px</span>
+                <div class="result-card primary-metrics-card" aria-label="Primary metrics">
+                    <h3 class="card-heading">Sampling</h3>
+                    <div class="primary-metric pixel-scale-metric">
+                        <span class="primary-metric-label" id="pixel-scale-label">Pixel Scale</span>
+                        <span class="primary-metric-value" aria-labelledby="pixel-scale-label">@result.PixelScale.ToString("F2")<span class="metric-unit">″/px</span></span>
                     </div>
-                    <div class="metric">
-                        <span class="metric-label">Optimal Range</span>
-                        <span class="metric-value">@result.OptimalRangeMin.ToString("F2") – @result.OptimalRangeMax.ToString("F2") ″/px</span>
-                    </div>
-                </div>
-
-                <div class="result-card">
-                    <div class="metric">
-                        <span class="metric-label">Field of View</span>
-                        <span class="metric-value">@result.FovWidthArcmin.ToString("F1")′ &times; @result.FovHeightArcmin.ToString("F1")′</span>
-                    </div>
-                    <div class="metric">
-                        <span class="metric-label">FOV (degrees)</span>
-                        <span class="metric-value">@result.FovWidthDeg.ToString("F3")° &times; @result.FovHeightDeg.ToString("F3")°</span>
+                    <div class="metric-row">
+                        <span class="metric-label" id="optimal-range-label">Optimal Range</span>
+                        <span class="metric-value" aria-labelledby="optimal-range-label">@result.OptimalRangeMin.ToString("F2") – @result.OptimalRangeMax.ToString("F2") ″/px</span>
                     </div>
                 </div>
 
-                <div class="result-card">
-                    <div class="metric">
-                        <span class="metric-label">Effective Focal Length</span>
-                        <span class="metric-value">@result.EffectiveFocalLength.ToString("F0") mm</span>
+                <div class="result-card" aria-label="Field of view metrics">
+                    <h3 class="card-heading">Field of View</h3>
+                    <div class="primary-metric fov-metric">
+                        <span class="primary-metric-value" aria-label="Field of view: @result.FovWidthArcmin.ToString("F1") by @result.FovHeightArcmin.ToString("F1") arcminutes">@result.FovWidthArcmin.ToString("F1")′ <span class="metric-separator">&times;</span> @result.FovHeightArcmin.ToString("F1")′</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label" id="fov-deg-label">Degrees</span>
+                        <span class="metric-value" aria-labelledby="fov-deg-label">@result.FovWidthDeg.ToString("F3")° &times; @result.FovHeightDeg.ToString("F3")°</span>
+                    </div>
+                </div>
+
+                <div class="result-card" aria-label="Optical system metrics">
+                    <h3 class="card-heading">Optics</h3>
+                    <div class="metric-row">
+                        <span class="metric-label" id="eff-focal-label">Effective Focal Length</span>
+                        <span class="metric-value" aria-labelledby="eff-focal-label">@result.EffectiveFocalLength.ToString("F0") mm</span>
                     </div>
                     @if (result.FRatio.HasValue)
                     {
-                        <div class="metric">
-                            <span class="metric-label">f-ratio</span>
-                            <span class="metric-value">f/@result.FRatio.Value.ToString("F1")</span>
+                        <div class="metric-row">
+                            <span class="metric-label" id="f-ratio-label">f-ratio</span>
+                            <span class="metric-value" aria-labelledby="f-ratio-label">f/@result.FRatio.Value.ToString("F1")</span>
                         </div>
                     }
                     @if (result.DawesLimitArcsec.HasValue)
                     {
-                        <div class="metric">
-                            <span class="metric-label">Dawes Limit</span>
-                            <span class="metric-value">@result.DawesLimitArcsec.Value.ToString("F2")″</span>
+                        <div class="metric-row">
+                            <span class="metric-label" id="dawes-label">Dawes Limit</span>
+                            <span class="metric-value" aria-labelledby="dawes-label">@result.DawesLimitArcsec.Value.ToString("F2")″</span>
                         </div>
                     }
                 </div>

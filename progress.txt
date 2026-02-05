@@ -90,3 +90,41 @@
   - Result display values (ToString("F2")) still use system locale (comma decimals) — acceptable for user display but worth noting
   - Playwright NUnit base class `PageTest` handles browser/page lifecycle automatically
 ---
+
+## Iteration 5 - Create results UI with clear hierarchy and responsive layout
+- What was implemented:
+  - Enhanced Results panel with clear visual hierarchy:
+    - Primary metrics displayed large and prominently (pixel scale, FOV in arcminutes)
+    - Card headings (SAMPLING, FIELD OF VIEW, OPTICS) with uppercase styling
+    - SAMPLING card highlighted with accent border and subtle gradient
+  - Responsive layout improvements:
+    - Desktop: two-column grid with sticky results panel
+    - Mobile: single-column stacked layout with adjusted font sizes
+    - Seeing preset buttons wrap on small screens
+  - Accessibility enhancements:
+    - aria-label on results panel section
+    - aria-labelledby linking metric values to their labels
+    - role="status" and aria-live="polite" for status updates
+    - role="alert" for validation warnings
+    - Semantic HTML: ul/li for recommendations list
+  - Added 9 new Playwright UI tests:
+    - Primary pixel scale display
+    - Card headings visibility
+    - Sampling card highlighting
+    - FOV arcminutes display
+    - Optics card effective focal
+    - Accessibility aria-labels
+    - Accessibility aria-labelledby
+    - Desktop two-column layout
+    - Mobile single-column layout
+- Files changed:
+  - src/SamplingCalculator/Pages/Home.razor (enhanced results structure, aria attributes)
+  - src/SamplingCalculator/wwwroot/css/app.css (primary metrics, card headings, responsive breakpoints)
+  - tests/SamplingCalculator.Playwright/UnitTest1.cs (9 new tests, total 19)
+  - prd.md (marked task 5 as passes: true)
+- Learnings for future iterations:
+  - Use .primary-metric-value for large prominent displays vs .metric-value for standard rows
+  - aria-labelledby provides accessible name linking without repeating text
+  - Playwright BoundingBoxAsync() useful for testing responsive layout positioning
+  - position: sticky on results panel keeps it visible while scrolling inputs on desktop
+---

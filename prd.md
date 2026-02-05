@@ -180,7 +180,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 5,
     "title": "Create results UI with clear hierarchy and responsive layout",
     "description": "Design a Results card showing pixel scale, FOV, effective focal length, and sampling badge. Ensure mobile/desktop responsive behavior and accessible labeling.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 6,

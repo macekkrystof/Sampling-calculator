@@ -50,3 +50,14 @@
 - Added 43 unit tests for validation logic
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
 - Result: Build succeeds, 83/83 unit tests pass, 10/10 Playwright UI tests pass
+
+### 2026-02-05 – Iteration 5: Create results UI with clear hierarchy and responsive layout
+- Task: Create results UI with clear hierarchy and responsive layout (Task #5)
+- Enhanced Results panel with visual hierarchy: primary metrics (pixel scale, FOV) displayed prominently with large font
+- Added card headings (SAMPLING, FIELD OF VIEW, OPTICS) for clear organization
+- SAMPLING card highlighted with accent border and subtle gradient background
+- Improved responsive layout: sticky results panel on desktop, stacked on mobile
+- Added accessibility: aria-label, aria-labelledby, role="status/alert", semantic ul/li
+- Wrote 9 new Playwright UI tests for visual hierarchy, accessibility, and responsive behavior
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
+- Result: Build succeeds, 83/83 unit tests pass, 19/19 Playwright UI tests pass

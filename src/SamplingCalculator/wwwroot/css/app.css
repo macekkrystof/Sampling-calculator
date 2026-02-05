@@ -58,6 +58,44 @@ h1:focus {
 @media (min-width: 768px) {
     .calculator-layout {
         grid-template-columns: 1fr 1fr;
+        align-items: start;
+    }
+
+    .results-panel {
+        position: sticky;
+        top: 1rem;
+    }
+}
+
+/* Mobile-specific adjustments */
+@media (max-width: 767px) {
+    .calculator-header h1 {
+        font-size: 1.5rem;
+    }
+
+    .calculator-header .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .inputs-panel, .results-panel {
+        padding: 1rem;
+    }
+
+    .primary-metric-value {
+        font-size: 1.75rem;
+    }
+
+    .fov-metric .primary-metric-value {
+        font-size: 1.4rem;
+    }
+
+    .seeing-presets {
+        flex-wrap: wrap;
+    }
+
+    .preset-btn {
+        flex: 1 1 calc(50% - 0.25rem);
+        min-width: 0;
     }
 }
 
@@ -198,21 +236,54 @@ h1:focus {
     font-size: 0.78rem;
 }
 
+/* Card headings */
+.card-heading {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem;
+    font-weight: 600;
+}
+
 /* Recommendations */
 .recommendations-card {
     border-color: var(--accent);
 }
 
+.recommendations-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 .recommendation {
     color: var(--text-primary);
     font-size: 0.88rem;
-    margin: 0.5rem 0 0;
+    padding: 0.35rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+}
+
+.recommendation::before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
 }
 
 .warning {
     color: var(--status-under);
     font-size: 0.88rem;
-    margin: 0.5rem 0 0;
+    padding: 0.35rem 0;
+    padding-left: 1.2rem;
+    position: relative;
+}
+
+.warning::before {
+    content: "⚠";
+    position: absolute;
+    left: 0;
 }
 
 .result-card {
@@ -259,14 +330,64 @@ h1:focus {
     margin: 0.75rem 0 0;
 }
 
-.metric {
+/* Primary metrics (large, prominent display) */
+.primary-metric {
+    text-align: center;
+    padding: 0.75rem 0;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.primary-metric-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+}
+
+.primary-metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.primary-metric-value .metric-unit {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-left: 0.25rem;
+}
+
+.primary-metric-value .metric-separator {
+    color: var(--text-secondary);
+    font-weight: 400;
+    margin: 0 0.15rem;
+}
+
+/* Primary metrics cards get highlighted */
+.primary-metrics-card {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(88, 166, 255, 0.05) 100%);
+}
+
+/* FOV primary metric */
+.fov-metric .primary-metric-value {
+    font-size: 1.6rem;
+}
+
+/* Standard metric rows */
+.metric-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 0.4rem 0;
 }
 
-.metric + .metric {
+.metric-row + .metric-row {
     border-top: 1px solid var(--border);
 }
 
@@ -279,6 +400,18 @@ h1:focus {
     font-weight: 600;
     font-size: 1rem;
     font-variant-numeric: tabular-nums;
+}
+
+/* Legacy .metric class for backwards compatibility */
+.metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0;
+}
+
+.metric + .metric {
+    border-top: 1px solid var(--border);
 }
 
 /* Loading & error styles */
