@@ -145,3 +145,11 @@
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
 - Result: Build succeeds, 166/166 unit tests pass, 108/108 Playwright UI tests pass
 - Visual verification: application handles invalid inputs gracefully, URL parameter validation works
+
+### 2026-02-05 – Iteration 13: Dokumentace a README
+- Task: Dokumentace a README (Task #13)
+- Created README.md with project overview, features, installation/run instructions
+- Created LICENSE file (MIT)
+- Verified build and unit tests
+- Commands: dotnet build, dotnet test tests/SamplingCalculator.Tests
+- Result: Build succeeds, 171/171 unit tests pass

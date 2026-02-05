@@ -337,3 +337,17 @@
   - Task 11 requirements were satisfied by previous iterations' implementations
   - Visual verification confirms graceful fallback for invalid URL parameters
 ---
+
+## Iteration 13 - Dokumentace a README
+- What was implemented:
+  - Created README.md with project description, features, setup instructions, and tech stack
+  - Added MIT LICENSE file
+  - Verified solution builds and tests pass
+- Files changed:
+  - README.md (new)
+  - LICENSE (new)
+  - prd.md (marked task 13 as passes: true)
+- Learnings for future iterations:
+  - Documentation doesn't require unit tests but should be verified by build
+  - Markdown files are essential for project handoff
+---
