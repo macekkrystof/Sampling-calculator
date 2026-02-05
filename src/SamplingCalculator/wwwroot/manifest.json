@@ -1,0 +1,31 @@
+{
+  "name": "Astrophotography Sampling Calculator",
+  "short_name": "Sampling Calc",
+  "description": "Calculate optimal pixel scale, field of view, and sampling status for your astrophotography setup",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0d1117",
+  "orientation": "any",
+  "categories": ["utilities", "education"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    },
+    {
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "32x32"
+    },
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "en",
+  "dir": "ltr"
+}

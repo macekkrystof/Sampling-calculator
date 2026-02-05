@@ -1589,3 +1589,207 @@ public class AstroThemeAccessibilityTests : PageTest
         Assert.That(bgColor, Does.Not.EqualTo("rgba(0, 0, 0, 0)"), "Active preset button should have background");
     }
 }
+
+// --- Task 10: SEO & Metadata Tests ---
+
+[Parallelizable(ParallelScope.Self)]
+[TestFixture]
+public class SeoMetadataTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5173";
+
+    public override BrowserNewContextOptions ContextOptions()
+    {
+        return new BrowserNewContextOptions
+        {
+            IgnoreHTTPSErrors = true,
+        };
+    }
+
+    private async Task WaitForBlazorAsync()
+    {
+        await Page.GotoAsync(BaseUrl, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("Sampling Calculator",
+            new() { Timeout = 30000 });
+    }
+
+    [Test]
+    public async Task Seo_HasProperTitle()
+    {
+        await WaitForBlazorAsync();
+
+        var title = await Page.TitleAsync();
+        Assert.That(title, Does.Contain("Astrophotography"));
+        Assert.That(title, Does.Contain("Sampling Calculator"));
+    }
+
+    [Test]
+    public async Task Seo_HasMetaDescription()
+    {
+        await WaitForBlazorAsync();
+
+        var metaDesc = Page.Locator("meta[name='description']");
+        var content = await metaDesc.GetAttributeAsync("content");
+        Assert.That(content, Is.Not.Null.And.Not.Empty);
+        Assert.That(content, Does.Contain("pixel scale").IgnoreCase);
+    }
+
+    [Test]
+    public async Task Seo_HasMetaKeywords()
+    {
+        await WaitForBlazorAsync();
+
+        var metaKeywords = Page.Locator("meta[name='keywords']");
+        var content = await metaKeywords.GetAttributeAsync("content");
+        Assert.That(content, Is.Not.Null.And.Not.Empty);
+        Assert.That(content, Does.Contain("astrophotography").IgnoreCase);
+    }
+
+    [Test]
+    public async Task Seo_HasThemeColor()
+    {
+        await WaitForBlazorAsync();
+
+        var themeColor = Page.Locator("meta[name='theme-color']");
+        var content = await themeColor.GetAttributeAsync("content");
+        Assert.That(content, Is.Not.Null.And.Not.Empty);
+        Assert.That(content, Does.StartWith("#"));
+    }
+
+    [Test]
+    public async Task Seo_HasOpenGraphTags()
+    {
+        await WaitForBlazorAsync();
+
+        // og:type
+        var ogType = Page.Locator("meta[property='og:type']");
+        await Expect(ogType).ToHaveCountAsync(1);
+
+        // og:title
+        var ogTitle = Page.Locator("meta[property='og:title']");
+        var titleContent = await ogTitle.GetAttributeAsync("content");
+        Assert.That(titleContent, Does.Contain("Astrophotography").Or.Contain("Sampling"));
+
+        // og:description
+        var ogDesc = Page.Locator("meta[property='og:description']");
+        var descContent = await ogDesc.GetAttributeAsync("content");
+        Assert.That(descContent, Is.Not.Null.And.Not.Empty);
+    }
+
+    [Test]
+    public async Task Seo_HasTwitterCards()
+    {
+        await WaitForBlazorAsync();
+
+        // twitter:card
+        var twitterCard = Page.Locator("meta[property='twitter:card']");
+        await Expect(twitterCard).ToHaveCountAsync(1);
+        var cardType = await twitterCard.GetAttributeAsync("content");
+        Assert.That(cardType, Is.EqualTo("summary_large_image"));
+
+        // twitter:title
+        var twitterTitle = Page.Locator("meta[property='twitter:title']");
+        await Expect(twitterTitle).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Seo_HasLangAttribute()
+    {
+        await WaitForBlazorAsync();
+
+        var htmlElement = Page.Locator("html");
+        var lang = await htmlElement.GetAttributeAsync("lang");
+        Assert.That(lang, Is.EqualTo("en"));
+    }
+
+    [Test]
+    public async Task Pwa_HasManifestLink()
+    {
+        await WaitForBlazorAsync();
+
+        var manifestLink = Page.Locator("link[rel='manifest']");
+        await Expect(manifestLink).ToHaveCountAsync(1);
+        var href = await manifestLink.GetAttributeAsync("href");
+        Assert.That(href, Does.Contain("manifest.json"));
+    }
+
+    [Test]
+    public async Task Pwa_HasAppleTouchIcon()
+    {
+        await WaitForBlazorAsync();
+
+        var appleTouchIcon = Page.Locator("link[rel='apple-touch-icon']");
+        await Expect(appleTouchIcon).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Pwa_HasAppleWebAppMeta()
+    {
+        await WaitForBlazorAsync();
+
+        var capable = Page.Locator("meta[name='apple-mobile-web-app-capable']");
+        await Expect(capable).ToHaveCountAsync(1);
+        var capableContent = await capable.GetAttributeAsync("content");
+        Assert.That(capableContent, Is.EqualTo("yes"));
+
+        var title = Page.Locator("meta[name='apple-mobile-web-app-title']");
+        await Expect(title).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task Favicon_HasSvgIcon()
+    {
+        await WaitForBlazorAsync();
+
+        var svgIcon = Page.Locator("link[rel='icon'][type='image/svg+xml']");
+        await Expect(svgIcon).ToHaveCountAsync(1);
+        var href = await svgIcon.GetAttributeAsync("href");
+        Assert.That(href, Does.Contain(".svg"));
+    }
+
+    [Test]
+    public async Task Favicon_HasPngFallback()
+    {
+        await WaitForBlazorAsync();
+
+        var pngIcons = Page.Locator("link[rel='icon'][type='image/png']");
+        var count = await pngIcons.CountAsync();
+        Assert.That(count, Is.GreaterThanOrEqualTo(1), "Should have at least one PNG favicon");
+    }
+
+    [Test]
+    public async Task Seo_HasRobotsMetaTag()
+    {
+        await WaitForBlazorAsync();
+
+        var robots = Page.Locator("meta[name='robots']");
+        await Expect(robots).ToHaveCountAsync(1);
+        var content = await robots.GetAttributeAsync("content");
+        Assert.That(content, Does.Contain("index"));
+        Assert.That(content, Does.Contain("follow"));
+    }
+
+    [Test]
+    public async Task Manifest_IsAccessible()
+    {
+        // Try to fetch manifest.json directly
+        var response = await Page.GotoAsync($"{BaseUrl}/manifest.json");
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.Status, Is.EqualTo(200));
+
+        var content = await response.TextAsync();
+        Assert.That(content, Does.Contain("Astrophotography").Or.Contain("Sampling"));
+        Assert.That(content, Does.Contain("icons"));
+    }
+
+    [Test]
+    public async Task Favicon_SvgIsAccessible()
+    {
+        var response = await Page.GotoAsync($"{BaseUrl}/favicon.svg");
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response!.Status, Is.EqualTo(200));
+
+        var content = await response.TextAsync();
+        Assert.That(content, Does.Contain("<svg"));
+    }
+}

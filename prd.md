@@ -210,7 +210,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 10,
     "title": "SEO a metadata",
     "description": "Přidat SEO metadata do wwwroot/index.html a komponent: title, description, og:tags pro social sharing, favicon (astronomický motiv), manifest.json pro PWA ready (volitelně), správné lang atributy.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 11,
