@@ -222,7 +222,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 12,
     "title": "Performance optimalizace",
     "description": "Optimalizovat performance: lazy loading komponent kde vhodné, debounce na input změny (aby se nepočítalo při každém stisku klávesy), minimalizace re-renderů, AOT compilation setup pro menší bundle size.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 13,

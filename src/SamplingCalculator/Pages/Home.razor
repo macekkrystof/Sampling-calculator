@@ -63,12 +63,15 @@
     }
 </main>
 
+
+
 @code {
     private CalculatorInput InputA { get; set; } = new();
     private CalculatorInput InputB { get; set; } = new();
     private bool CompareMode { get; set; } = false;
     private string _shareButtonText = "Share";
     private bool _isInitialized = false;
+
 
     protected override void OnInitialized()
     {
@@ -153,4 +156,6 @@
             _shareButtonText = "Share";
         }
     }
+
+
 }

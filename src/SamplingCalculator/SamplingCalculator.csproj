@@ -5,6 +5,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <OverrideHtmlAssetPlaceholders>true</OverrideHtmlAssetPlaceholders>
+    <RunAOTCompilation Condition="'$(Configuration)'=='Release'">true</RunAOTCompilation>
+    <WasmStripILAfterAOT Condition="'$(Configuration)'=='Release'">true</WasmStripILAfterAOT>
+    <PublishTrimmed>true</PublishTrimmed>
+    <BlazorEnableCompression>true</BlazorEnableCompression>
   </PropertyGroup>
 
   <ItemGroup>

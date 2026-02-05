@@ -1,5 +1,6 @@
 @namespace SamplingCalculator.Components
 @using SamplingCalculator.Services
+@using System.Threading
 
 <div class="field @(Validation is { IsValid: false } ? "field-error" : "")">
     <label for="@Id">
@@ -22,7 +23,7 @@
            min="@Min"
            max="@Max"
            step="@Step"
-           value="@Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+           value="@_displayValue"
            @oninput="OnInput"
            aria-describedby="@(Id + "-error")"
            aria-invalid="@(Validation is { IsValid: false } ? "true" : null)" />
@@ -31,6 +32,8 @@
         <span id="@(Id + "-error")" class="field-error-message" role="alert">@Validation.ErrorMessage</span>
     }
 </div>
+
+@implements IDisposable
 
 @code {
     [Parameter] public string Id { get; set; } = "";
@@ -44,58 +47,142 @@
     [Parameter] public string Max { get; set; } = "";
     [Parameter] public string Step { get; set; } = "1";
     [Parameter] public Func<double, ValidationResult>? Validate { get; set; }
+    [Parameter] public int DebounceDelay { get; set; } = 300;
 
     private ValidationResult? Validation { get; set; }
     private bool _hasParseError;
+    private CancellationTokenSource? _debounceCts;
+    private string? _displayValue;
+    private bool _isUserEditing;
+
+    protected override void OnInitialized()
+    {
+        _displayValue = FormatValue(Value);
+    }
 
     protected override void OnParametersSet()
     {
-        if (_hasParseError)
+        // Only update display value from parameter if user is NOT currently editing
+        // or if the value has changed significantly (e.g. ext reset)
+        // Simplest safe approach: If we just fired an update, we expect it back.
+        // But if the parent updates it to something else, we should reflect it.
+        // For now, let's sync if not editing, or if editing but the value matches what we parsed? No.
+        
+        // BETTER STRATEGY: 
+        // Always sync _displayValue to Value in OnParametersSet UNLESS it matches the parsed value of the current _displayValue?
+        // Actually, the issue was simpler: Re-render happened before Value updated.
+        // So update _displayValue here is fine, provided we entered OnInput and updated _displayValue THERE first.
+        
+        // But OnParametersSet runs AFTER OnInput's state change triggers a render? No, OnParametersSet runs when parent passes new parameters.
+        // Internal state changes (Validation) trigger Render, NOT OnParametersSet.
+        
+        // So:
+        // 1. External change -> OnParametersSet -> Update _displayValue
+        // 2. Internal change (typing) -> OnInput -> Update _displayValue -> Validation -> Render (using new _displayValue). Value param is OLD. OnParametersSet does NOT run.
+        // 3. Debounce -> ValueChanged -> Parent updates param -> OnParametersSet -> Update _displayValue (to same value).
+        
+        // The only catch: If OnParametersSet runs *during* typing for some other reason? 
+        // We can track `_lastSyncedValue` to compare.
+        
+        if (Math.Abs(Value - _lastSyncedValue) > double.Epsilon)
         {
-            Validation = ValidationResult.Error("Please enter a valid number.");
-        }
-        else if (Validate is not null)
-        {
-            Validation = Validate(Value);
+             _displayValue = FormatValue(Value);
+             _lastSyncedValue = Value;
+             // Re-validate on external change
+             ValidateValue(Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
     }
 
-    private async Task OnInput(ChangeEventArgs e)
-    {
-        var inputValue = e.Value?.ToString();
+    private double _lastSyncedValue;
 
-        // Handle empty input for optional fields
-        if (string.IsNullOrWhiteSpace(inputValue))
+    private string FormatValue(double val)
+    {
+        return val.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+    
+    private void ValidateValue(string? inputValue)
+    {
+         if (string.IsNullOrWhiteSpace(inputValue))
         {
             if (IsOptional)
             {
                 _hasParseError = false;
-                Value = 0;
                 Validation = ValidationResult.Valid();
-                await ValueChanged.InvokeAsync(0);
             }
             else
             {
                 _hasParseError = true;
                 Validation = ValidationResult.Error("This field is required.");
             }
-            return;
         }
-
-        if (double.TryParse(inputValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+        else if (double.TryParse(inputValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
         {
             _hasParseError = false;
-            Value = parsed;
             if (Validate is not null)
             {
                 Validation = Validate(parsed);
             }
-            await ValueChanged.InvokeAsync(parsed);
         }
         else
         {
             _hasParseError = true;
             Validation = ValidationResult.Error("Please enter a valid number.");
+        }
+    }
+
+    public void Dispose()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+    }
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        var inputValue = e.Value?.ToString();
+        _displayValue = inputValue; // Critical: keep display value in sync with input
+        
+        ValidateValue(inputValue);
+
+        // Parsing logic for commit
+        double? parsedValue = null;
+        bool isValid = false;
+
+        if (string.IsNullOrWhiteSpace(inputValue))
+        {
+            if (IsOptional)
+            {
+                parsedValue = 0;
+                isValid = true;
+            }
+        }
+        else if (double.TryParse(inputValue, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+        {
+            parsedValue = parsed;
+            isValid = true;
+        }
+
+        // Debounced Commit
+        _debounceCts?.Cancel();
+        _debounceCts = new CancellationTokenSource();
+        var token = _debounceCts.Token;
+
+        if (isValid && parsedValue.HasValue)
+        {
+            try
+            {
+                await Task.Delay(DebounceDelay, token);
+                if (!token.IsCancellationRequested)
+                {
+                    // This will trigger parent update -> OnParametersSet -> _displayValue sync
+                    // We update _lastSyncedValue here so that when OnParametersSet comes, it sees no change (if value is same)
+                    // But actually, we want OnParametersSet to run normally.
+                    await ValueChanged.InvokeAsync(parsedValue.Value);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // Ignored
+            }
         }
     }
 }

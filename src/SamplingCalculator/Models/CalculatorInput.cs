@@ -1,6 +1,6 @@
 namespace SamplingCalculator.Models;
 
-public class CalculatorInput
+public class CalculatorInput : IEquatable<CalculatorInput>
 {
     // Telescope / Optics
     public double BaseFocalLength { get; set; } = 800;
@@ -49,5 +49,44 @@ public class CalculatorInput
         Binning = source.Binning;
         CameraName = source.CameraName;
         Seeing = source.Seeing;
+    }
+
+    public override bool Equals(object? obj) => Equals(obj as CalculatorInput);
+
+    public bool Equals(CalculatorInput? other)
+    {
+        if (other is null) return false;
+        if (ReferenceEquals(this, other)) return true;
+
+        // Use approximate equality for doubles to handle floating point nuances safely
+        const double tolerance = 0.000001;
+
+        return Math.Abs(BaseFocalLength - other.BaseFocalLength) < tolerance &&
+               Math.Abs((ApertureDiameter ?? 0) - (other.ApertureDiameter ?? 0)) < tolerance &&
+               (ApertureDiameter.HasValue == other.ApertureDiameter.HasValue) &&
+               Math.Abs(ReducerFactor - other.ReducerFactor) < tolerance &&
+               Math.Abs(BarlowFactor - other.BarlowFactor) < tolerance &&
+               Math.Abs(PixelSize - other.PixelSize) < tolerance &&
+               SensorWidthPx == other.SensorWidthPx &&
+               SensorHeightPx == other.SensorHeightPx &&
+               Binning == other.Binning &&
+               string.Equals(CameraName, other.CameraName, StringComparison.Ordinal) &&
+               Math.Abs(Seeing - other.Seeing) < tolerance;
+    }
+
+    public override int GetHashCode()
+    {
+        var hash = new HashCode();
+        hash.Add(BaseFocalLength);
+        hash.Add(ApertureDiameter);
+        hash.Add(ReducerFactor);
+        hash.Add(BarlowFactor);
+        hash.Add(PixelSize);
+        hash.Add(SensorWidthPx);
+        hash.Add(SensorHeightPx);
+        hash.Add(Binning);
+        hash.Add(CameraName);
+        hash.Add(Seeing);
+        return hash.ToHashCode();
     }
 }

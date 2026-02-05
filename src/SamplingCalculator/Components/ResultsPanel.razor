@@ -13,7 +13,7 @@
     }
     else
     {
-        var result = Calculator.Calculate(Input);
+        var result = _result!;
 
         @if (result.HasError)
         {
@@ -105,6 +105,18 @@
     [Parameter] public bool Compact { get; set; } = false;
 
     private SamplingCalculatorService Calculator { get; set; } = new();
+    private CalculatorResult? _result;
+    private CalculatorInput? _lastInputSnapshot;
+
+    protected override void OnParametersSet()
+    {
+        // Only recalculate if input has meaningfully changed
+        if (_lastInputSnapshot == null || !Input.Equals(_lastInputSnapshot))
+        {
+            _result = Calculator.Calculate(Input);
+            _lastInputSnapshot = Input.Clone();
+        }
+    }
 
     private bool HasValidationErrors =>
         !InputValidationService.ValidateFocalLength(Input.BaseFocalLength).IsValid
