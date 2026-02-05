@@ -61,3 +61,16 @@
 - Wrote 9 new Playwright UI tests for visual hierarchy, accessibility, and responsive behavior
 - Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright, npx playwright screenshot
 - Result: Build succeeds, 83/83 unit tests pass, 19/19 Playwright UI tests pass
+
+### 2026-02-05 – Iteration 6: Add comparison mode (Setup A vs Setup B)
+- Task: Add comparison mode (Setup A vs Setup B) (Task #6)
+- Added Clone() and CopyFrom() methods to CalculatorInput for state duplication
+- Created reusable InputPanel.razor and ResultsPanel.razor components
+- Refactored Home.razor: single mode (default) and compare mode (two setups side-by-side)
+- Added "Copy A → B" button and compare mode toggle checkbox
+- CSS for compare layout: side-by-side on desktop (≥992px), stacked on mobile
+- Setup A has blue accent border, Setup B has green border for visual distinction
+- Compact results panel styling in compare mode
+- 6 new unit tests for Clone/CopyFrom, 14 new Playwright tests for comparison mode
+- Commands: dotnet build SamplingCalculator.slnx, dotnet test tests/SamplingCalculator.Tests, dotnet test tests/SamplingCalculator.Playwright
+- Result: Build succeeds, 89/89 unit tests pass, 33/33 Playwright UI tests pass

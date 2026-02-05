@@ -186,7 +186,7 @@ Aplikace poběží jako čistě statická stránka (Blazor WebAssembly), bude re
     "id": 6,
     "title": "Add comparison mode (Setup A vs Setup B)",
     "description": "Implement a lightweight compare mode that duplicates the state and renders two result panels side-by-side on desktop (stacked on mobile). Include a 'Copy A to B' action.",
-    "passes": false
+    "passes": true
   },
   {
     "id": 7,

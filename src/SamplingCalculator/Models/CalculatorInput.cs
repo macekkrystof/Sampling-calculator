@@ -19,4 +19,35 @@ public class CalculatorInput
     public double Seeing { get; set; } = 2.0;
 
     public double EffectiveFocalLength => BaseFocalLength * BarlowFactor / ReducerFactor;
+
+    public CalculatorInput Clone()
+    {
+        return new CalculatorInput
+        {
+            BaseFocalLength = BaseFocalLength,
+            ApertureDiameter = ApertureDiameter,
+            ReducerFactor = ReducerFactor,
+            BarlowFactor = BarlowFactor,
+            PixelSize = PixelSize,
+            SensorWidthPx = SensorWidthPx,
+            SensorHeightPx = SensorHeightPx,
+            Binning = Binning,
+            CameraName = CameraName,
+            Seeing = Seeing
+        };
+    }
+
+    public void CopyFrom(CalculatorInput source)
+    {
+        BaseFocalLength = source.BaseFocalLength;
+        ApertureDiameter = source.ApertureDiameter;
+        ReducerFactor = source.ReducerFactor;
+        BarlowFactor = source.BarlowFactor;
+        PixelSize = source.PixelSize;
+        SensorWidthPx = source.SensorWidthPx;
+        SensorHeightPx = source.SensorHeightPx;
+        Binning = source.Binning;
+        CameraName = source.CameraName;
+        Seeing = source.Seeing;
+    }
 }

@@ -1,0 +1,116 @@
+@namespace SamplingCalculator.Components
+@using SamplingCalculator.Models
+@using SamplingCalculator.Services
+
+<section class="results-panel @(Compact ? "results-panel-compact" : "")" aria-label="@ResultsLabel">
+    <h2 id="@($"{IdPrefix}-results-heading")">@ResultsLabel</h2>
+
+    @if (HasValidationErrors)
+    {
+        <div class="result-card validation-warning-card" role="alert" aria-live="polite">
+            <p>Please fix the input errors to see results.</p>
+        </div>
+    }
+    else
+    {
+        var result = Calculator.Calculate(Input);
+
+        <div class="result-card status-card status-@result.Status.ToString().ToLower()" role="status" aria-live="polite">
+            <span class="status-badge" aria-label="Sampling status: @FormatStatus(result.Status)">@FormatStatus(result.Status)</span>
+            <p class="status-description">@result.StatusMessage</p>
+        </div>
+
+        @if (result.BinningRecommendation is not null || result.CorrectorRecommendation is not null || result.ExtremeWarning is not null)
+        {
+            <div class="result-card recommendations-card" role="complementary" aria-label="Recommendations">
+                <h3 class="card-heading">Recommendations</h3>
+                <ul class="recommendations-list" role="list">
+                    @if (result.BinningRecommendation is not null)
+                    {
+                        <li class="recommendation">@result.BinningRecommendation</li>
+                    }
+                    @if (result.CorrectorRecommendation is not null)
+                    {
+                        <li class="recommendation">@result.CorrectorRecommendation</li>
+                    }
+                    @if (result.ExtremeWarning is not null)
+                    {
+                        <li class="warning" role="alert">@result.ExtremeWarning</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="result-card primary-metrics-card" aria-label="Primary metrics">
+            <h3 class="card-heading">Sampling</h3>
+            <div class="primary-metric pixel-scale-metric">
+                <span class="primary-metric-label" id="@($"{IdPrefix}-pixel-scale-label")">Pixel Scale</span>
+                <span class="primary-metric-value" aria-labelledby="@($"{IdPrefix}-pixel-scale-label")">@result.PixelScale.ToString("F2")<span class="metric-unit">″/px</span></span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label" id="@($"{IdPrefix}-optimal-range-label")">Optimal Range</span>
+                <span class="metric-value" aria-labelledby="@($"{IdPrefix}-optimal-range-label")">@result.OptimalRangeMin.ToString("F2") – @result.OptimalRangeMax.ToString("F2") ″/px</span>
+            </div>
+        </div>
+
+        <div class="result-card" aria-label="Field of view metrics">
+            <h3 class="card-heading">Field of View</h3>
+            <div class="primary-metric fov-metric">
+                <span class="primary-metric-value" aria-label="Field of view: @result.FovWidthArcmin.ToString("F1") by @result.FovHeightArcmin.ToString("F1") arcminutes">@result.FovWidthArcmin.ToString("F1")′ <span class="metric-separator">&times;</span> @result.FovHeightArcmin.ToString("F1")′</span>
+            </div>
+            <div class="metric-row">
+                <span class="metric-label" id="@($"{IdPrefix}-fov-deg-label")">Degrees</span>
+                <span class="metric-value" aria-labelledby="@($"{IdPrefix}-fov-deg-label")">@result.FovWidthDeg.ToString("F3")° &times; @result.FovHeightDeg.ToString("F3")°</span>
+            </div>
+        </div>
+
+        <div class="result-card" aria-label="Optical system metrics">
+            <h3 class="card-heading">Optics</h3>
+            <div class="metric-row">
+                <span class="metric-label" id="@($"{IdPrefix}-eff-focal-label")">Effective Focal Length</span>
+                <span class="metric-value" aria-labelledby="@($"{IdPrefix}-eff-focal-label")">@result.EffectiveFocalLength.ToString("F0") mm</span>
+            </div>
+            @if (result.FRatio.HasValue)
+            {
+                <div class="metric-row">
+                    <span class="metric-label" id="@($"{IdPrefix}-f-ratio-label")">f-ratio</span>
+                    <span class="metric-value" aria-labelledby="@($"{IdPrefix}-f-ratio-label")">f/@result.FRatio.Value.ToString("F1")</span>
+                </div>
+            }
+            @if (result.DawesLimitArcsec.HasValue)
+            {
+                <div class="metric-row">
+                    <span class="metric-label" id="@($"{IdPrefix}-dawes-label")">Dawes Limit</span>
+                    <span class="metric-value" aria-labelledby="@($"{IdPrefix}-dawes-label")">@result.DawesLimitArcsec.Value.ToString("F2")″</span>
+                </div>
+            }
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter] public string ResultsLabel { get; set; } = "Results";
+    [Parameter] public string IdPrefix { get; set; } = "results";
+    [Parameter] public CalculatorInput Input { get; set; } = new();
+    [Parameter] public bool Compact { get; set; } = false;
+
+    private SamplingCalculatorService Calculator { get; set; } = new();
+
+    private bool HasValidationErrors =>
+        !InputValidationService.ValidateFocalLength(Input.BaseFocalLength).IsValid
+        || !InputValidationService.ValidateAperture(Input.ApertureDiameter).IsValid
+        || !InputValidationService.ValidateReducerFactor(Input.ReducerFactor).IsValid
+        || !InputValidationService.ValidateBarlowFactor(Input.BarlowFactor).IsValid
+        || !InputValidationService.ValidatePixelSize(Input.PixelSize).IsValid
+        || !InputValidationService.ValidateSensorDimension(Input.SensorWidthPx).IsValid
+        || !InputValidationService.ValidateSensorDimension(Input.SensorHeightPx).IsValid
+        || !InputValidationService.ValidateSeeing(Input.Seeing).IsValid;
+
+    private string FormatStatus(SamplingStatus status) => status switch
+    {
+        SamplingStatus.Undersampled => "Undersampled",
+        SamplingStatus.Optimal => "Optimal",
+        SamplingStatus.Oversampled => "Oversampled",
+        _ => "Unknown"
+    };
+}

@@ -11,219 +11,58 @@
         <p class="subtitle">Camera &times; Telescope sampling evaluator for astrophotography</p>
     </header>
 
-    <div class="calculator-layout">
-        <section class="inputs-panel">
-            <h2>Setup</h2>
-
-            <div class="input-group">
-                <h3>Telescope / Optics</h3>
-                <NumericInput Id="focalLength"
-                              Label="Focal length"
-                              Unit="mm"
-                              Tooltip="Base focal length of your telescope or lens"
-                              Value="@Input.BaseFocalLength"
-                              ValueChanged="@(v => { Input.BaseFocalLength = v; StateHasChanged(); })"
-                              Min="1" Step="1"
-                              Validate="InputValidationService.ValidateFocalLength" />
-
-                <NumericInput Id="aperture"
-                              Label="Aperture diameter"
-                              Unit="mm"
-                              Tooltip="Diameter of the primary mirror or lens. Used for Dawes limit and f-ratio."
-                              IsOptional="true"
-                              Value="@(Input.ApertureDiameter ?? 0)"
-                              ValueChanged="@(v => { Input.ApertureDiameter = v > 0 ? v : null; StateHasChanged(); })"
-                              Min="1" Step="1"
-                              Validate="@(v => InputValidationService.ValidateAperture(v > 0 ? v : null))" />
-
-                <NumericInput Id="reducer"
-                              Label="Reducer factor"
-                              Unit="×"
-                              Tooltip="Focal reducer factor (e.g. 0.7×). Leave at 1.0 if not using a reducer."
-                              Value="@Input.ReducerFactor"
-                              ValueChanged="@(v => { Input.ReducerFactor = v; StateHasChanged(); })"
-                              Min="0.1" Max="1.0" Step="0.05"
-                              Validate="InputValidationService.ValidateReducerFactor" />
-
-                <NumericInput Id="barlow"
-                              Label="Barlow factor"
-                              Unit="×"
-                              Tooltip="Barlow lens magnification (e.g. 2×). Leave at 1.0 if not using a barlow."
-                              Value="@Input.BarlowFactor"
-                              ValueChanged="@(v => { Input.BarlowFactor = v; StateHasChanged(); })"
-                              Min="1.0" Max="5.0" Step="0.1"
-                              Validate="InputValidationService.ValidateBarlowFactor" />
-            </div>
-
-            <div class="input-group">
-                <h3>Camera / Sensor</h3>
-                <NumericInput Id="pixelSize"
-                              Label="Pixel size"
-                              Unit="µm"
-                              Tooltip="Physical size of a single sensor pixel in micrometers"
-                              Value="@Input.PixelSize"
-                              ValueChanged="@(v => { Input.PixelSize = v; StateHasChanged(); })"
-                              Min="0.1" Step="0.01"
-                              Validate="InputValidationService.ValidatePixelSize" />
-
-                <NumericInput Id="sensorWidth"
-                              Label="Sensor width"
-                              Unit="px"
-                              Tooltip="Horizontal resolution of the sensor in pixels"
-                              Value="@Input.SensorWidthPx"
-                              ValueChanged="@(v => { Input.SensorWidthPx = (int)v; StateHasChanged(); })"
-                              Min="1" Step="1"
-                              Validate="@(v => InputValidationService.ValidateSensorDimension((int)v))" />
-
-                <NumericInput Id="sensorHeight"
-                              Label="Sensor height"
-                              Unit="px"
-                              Tooltip="Vertical resolution of the sensor in pixels"
-                              Value="@Input.SensorHeightPx"
-                              ValueChanged="@(v => { Input.SensorHeightPx = (int)v; StateHasChanged(); })"
-                              Min="1" Step="1"
-                              Validate="@(v => InputValidationService.ValidateSensorDimension((int)v))" />
-
-                <div class="field">
-                    <label for="binning">
-                        Binning
-                        <span class="tooltip-icon" title="Combines adjacent pixels. Higher binning increases pixel scale and sensitivity but reduces resolution.">?</span>
-                    </label>
-                    <select id="binning" @bind="Input.Binning" @bind:event="oninput">
-                        <option value="1">1&times;1</option>
-                        <option value="2">2&times;2</option>
-                        <option value="3">3&times;3</option>
-                        <option value="4">4&times;4</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <h3>Seeing</h3>
-                <NumericInput Id="seeing"
-                              Label="Seeing"
-                              Unit="arcsec"
-                              Tooltip="Typical atmospheric seeing at your location (FWHM of stars)"
-                              Value="@Input.Seeing"
-                              ValueChanged="@(v => { Input.Seeing = v; StateHasChanged(); })"
-                              Min="0.1" Step="0.1"
-                              Validate="InputValidationService.ValidateSeeing" />
-
-                <div class="seeing-presets">
-                    <button class="preset-btn @(Input.Seeing == 1.5 ? "preset-active" : "")" @onclick='() => Input.Seeing = 1.5'>Excellent (1.5″)</button>
-                    <button class="preset-btn @(Input.Seeing == 2.0 ? "preset-active" : "")" @onclick='() => Input.Seeing = 2.0'>Average (2.0″)</button>
-                    <button class="preset-btn @(Input.Seeing == 3.0 ? "preset-active" : "")" @onclick='() => Input.Seeing = 3.0'>Poor (3.0″)</button>
-                </div>
-            </div>
-        </section>
-
-        <section class="results-panel" aria-label="Calculation results">
-            <h2 id="results-heading">Results</h2>
-
-            @if (HasValidationErrors)
-            {
-                <div class="result-card validation-warning-card" role="alert" aria-live="polite">
-                    <p>Please fix the input errors to see results.</p>
-                </div>
-            }
-            else
-            {
-                var result = Calculator.Calculate(Input);
-
-                <div class="result-card status-card status-@result.Status.ToString().ToLower()" role="status" aria-live="polite">
-                    <span class="status-badge" aria-label="Sampling status: @FormatStatus(result.Status)">@FormatStatus(result.Status)</span>
-                    <p class="status-description">@result.StatusMessage</p>
-                </div>
-
-                @if (result.BinningRecommendation is not null || result.CorrectorRecommendation is not null || result.ExtremeWarning is not null)
-                {
-                    <div class="result-card recommendations-card" role="complementary" aria-label="Recommendations">
-                        <h3 class="card-heading">Recommendations</h3>
-                        <ul class="recommendations-list" role="list">
-                            @if (result.BinningRecommendation is not null)
-                            {
-                                <li class="recommendation">@result.BinningRecommendation</li>
-                            }
-                            @if (result.CorrectorRecommendation is not null)
-                            {
-                                <li class="recommendation">@result.CorrectorRecommendation</li>
-                            }
-                            @if (result.ExtremeWarning is not null)
-                            {
-                                <li class="warning" role="alert">@result.ExtremeWarning</li>
-                            }
-                        </ul>
-                    </div>
-                }
-
-                <div class="result-card primary-metrics-card" aria-label="Primary metrics">
-                    <h3 class="card-heading">Sampling</h3>
-                    <div class="primary-metric pixel-scale-metric">
-                        <span class="primary-metric-label" id="pixel-scale-label">Pixel Scale</span>
-                        <span class="primary-metric-value" aria-labelledby="pixel-scale-label">@result.PixelScale.ToString("F2")<span class="metric-unit">″/px</span></span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label" id="optimal-range-label">Optimal Range</span>
-                        <span class="metric-value" aria-labelledby="optimal-range-label">@result.OptimalRangeMin.ToString("F2") – @result.OptimalRangeMax.ToString("F2") ″/px</span>
-                    </div>
-                </div>
-
-                <div class="result-card" aria-label="Field of view metrics">
-                    <h3 class="card-heading">Field of View</h3>
-                    <div class="primary-metric fov-metric">
-                        <span class="primary-metric-value" aria-label="Field of view: @result.FovWidthArcmin.ToString("F1") by @result.FovHeightArcmin.ToString("F1") arcminutes">@result.FovWidthArcmin.ToString("F1")′ <span class="metric-separator">&times;</span> @result.FovHeightArcmin.ToString("F1")′</span>
-                    </div>
-                    <div class="metric-row">
-                        <span class="metric-label" id="fov-deg-label">Degrees</span>
-                        <span class="metric-value" aria-labelledby="fov-deg-label">@result.FovWidthDeg.ToString("F3")° &times; @result.FovHeightDeg.ToString("F3")°</span>
-                    </div>
-                </div>
-
-                <div class="result-card" aria-label="Optical system metrics">
-                    <h3 class="card-heading">Optics</h3>
-                    <div class="metric-row">
-                        <span class="metric-label" id="eff-focal-label">Effective Focal Length</span>
-                        <span class="metric-value" aria-labelledby="eff-focal-label">@result.EffectiveFocalLength.ToString("F0") mm</span>
-                    </div>
-                    @if (result.FRatio.HasValue)
-                    {
-                        <div class="metric-row">
-                            <span class="metric-label" id="f-ratio-label">f-ratio</span>
-                            <span class="metric-value" aria-labelledby="f-ratio-label">f/@result.FRatio.Value.ToString("F1")</span>
-                        </div>
-                    }
-                    @if (result.DawesLimitArcsec.HasValue)
-                    {
-                        <div class="metric-row">
-                            <span class="metric-label" id="dawes-label">Dawes Limit</span>
-                            <span class="metric-value" aria-labelledby="dawes-label">@result.DawesLimitArcsec.Value.ToString("F2")″</span>
-                        </div>
-                    }
-                </div>
-            }
-        </section>
+    <div class="compare-toggle-container">
+        <label class="compare-toggle">
+            <input type="checkbox" @bind="CompareMode" @bind:after="OnCompareModeChanged" />
+            <span class="toggle-label">Compare mode</span>
+        </label>
+        @if (CompareMode)
+        {
+            <button class="copy-btn" @onclick="CopyAToB" aria-label="Copy Setup A values to Setup B">
+                Copy A &rarr; B
+            </button>
+        }
     </div>
+
+    @if (CompareMode)
+    {
+        <div class="compare-layout">
+            <div class="setup-column setup-a">
+                <InputPanel SetupLabel="Setup A" IdPrefix="a" Input="InputA" OnInputChanged="StateHasChanged" />
+                <ResultsPanel ResultsLabel="Results A" IdPrefix="a" Input="InputA" Compact="true" />
+            </div>
+            <div class="setup-column setup-b">
+                <InputPanel SetupLabel="Setup B" IdPrefix="b" Input="InputB" OnInputChanged="StateHasChanged" />
+                <ResultsPanel ResultsLabel="Results B" IdPrefix="b" Input="InputB" Compact="true" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="calculator-layout">
+            <InputPanel SetupLabel="Setup" IdPrefix="single" Input="InputA" OnInputChanged="StateHasChanged" />
+            <ResultsPanel ResultsLabel="Results" IdPrefix="single" Input="InputA" />
+        </div>
+    }
 </div>
 
 @code {
-    private CalculatorInput Input { get; set; } = new();
-    private SamplingCalculatorService Calculator { get; set; } = new();
+    private CalculatorInput InputA { get; set; } = new();
+    private CalculatorInput InputB { get; set; } = new();
+    private bool CompareMode { get; set; } = false;
 
-    private bool HasValidationErrors =>
-        !InputValidationService.ValidateFocalLength(Input.BaseFocalLength).IsValid
-        || !InputValidationService.ValidateAperture(Input.ApertureDiameter).IsValid
-        || !InputValidationService.ValidateReducerFactor(Input.ReducerFactor).IsValid
-        || !InputValidationService.ValidateBarlowFactor(Input.BarlowFactor).IsValid
-        || !InputValidationService.ValidatePixelSize(Input.PixelSize).IsValid
-        || !InputValidationService.ValidateSensorDimension(Input.SensorWidthPx).IsValid
-        || !InputValidationService.ValidateSensorDimension(Input.SensorHeightPx).IsValid
-        || !InputValidationService.ValidateSeeing(Input.Seeing).IsValid;
-
-    private string FormatStatus(SamplingStatus status) => status switch
+    private void OnCompareModeChanged()
     {
-        SamplingStatus.Undersampled => "Undersampled",
-        SamplingStatus.Optimal => "Optimal",
-        SamplingStatus.Oversampled => "Oversampled",
-        _ => "Unknown"
-    };
+        if (CompareMode)
+        {
+            // When entering compare mode, copy A to B as initial state
+            InputB.CopyFrom(InputA);
+        }
+    }
+
+    private void CopyAToB()
+    {
+        InputB.CopyFrom(InputA);
+        StateHasChanged();
+    }
 }

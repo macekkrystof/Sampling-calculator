@@ -31,13 +31,13 @@ public class InputFormTests : PageTest
         await WaitForBlazorAsync();
 
         // Check default values are populated
-        var focalLength = Page.Locator("#focalLength");
+        var focalLength = Page.Locator("#single-focalLength");
         await Expect(focalLength).ToHaveValueAsync("800");
 
-        var pixelSize = Page.Locator("#pixelSize");
+        var pixelSize = Page.Locator("#single-pixelSize");
         await Expect(pixelSize).ToHaveValueAsync("3.76");
 
-        var seeing = Page.Locator("#seeing");
+        var seeing = Page.Locator("#single-seeing");
         await Expect(seeing).ToHaveValueAsync("2");
     }
 
@@ -62,7 +62,7 @@ public class InputFormTests : PageTest
 
         // Click "Excellent" preset
         await Page.Locator(".preset-btn").First.ClickAsync();
-        var seeing = Page.Locator("#seeing");
+        var seeing = Page.Locator("#single-seeing");
         await Expect(seeing).ToHaveValueAsync("1.5");
 
         // Click "Poor" preset
@@ -85,12 +85,12 @@ public class InputFormTests : PageTest
     {
         await WaitForBlazorAsync();
 
-        var focalLength = Page.Locator("#focalLength");
+        var focalLength = Page.Locator("#single-focalLength");
         await focalLength.FillAsync("0");
         await focalLength.DispatchEventAsync("input");
 
         // Should show validation error
-        var errorMessage = Page.Locator("#focalLength-error");
+        var errorMessage = Page.Locator("#single-focalLength-error");
         await Expect(errorMessage).ToBeVisibleAsync();
         await Expect(errorMessage).ToContainTextAsync("greater than 0");
     }
@@ -101,7 +101,7 @@ public class InputFormTests : PageTest
         await WaitForBlazorAsync();
 
         // Set invalid focal length
-        var focalLength = Page.Locator("#focalLength");
+        var focalLength = Page.Locator("#single-focalLength");
         await focalLength.FillAsync("0");
         await focalLength.DispatchEventAsync("input");
 
@@ -120,7 +120,7 @@ public class InputFormTests : PageTest
         var initialText = await pixelScaleValue.TextContentAsync();
 
         // Change binning to 2x2
-        await Page.Locator("#binning").SelectOptionAsync("2");
+        await Page.Locator("#single-binning").SelectOptionAsync("2");
 
         // Pixel scale should have changed
         await Expect(pixelScaleValue).Not.ToHaveTextAsync(initialText!);
@@ -148,11 +148,11 @@ public class InputFormTests : PageTest
     {
         await WaitForBlazorAsync();
 
-        var reducer = Page.Locator("#reducer");
+        var reducer = Page.Locator("#single-reducer");
         await reducer.FillAsync("1.5");
         await reducer.DispatchEventAsync("input");
 
-        var errorMessage = Page.Locator("#reducer-error");
+        var errorMessage = Page.Locator("#single-reducer-error");
         await Expect(errorMessage).ToBeVisibleAsync();
     }
 
@@ -161,11 +161,11 @@ public class InputFormTests : PageTest
     {
         await WaitForBlazorAsync();
 
-        var barlow = Page.Locator("#barlow");
+        var barlow = Page.Locator("#single-barlow");
         await barlow.FillAsync("0.5");
         await barlow.DispatchEventAsync("input");
 
-        var errorMessage = Page.Locator("#barlow-error");
+        var errorMessage = Page.Locator("#single-barlow-error");
         await Expect(errorMessage).ToBeVisibleAsync();
     }
 
@@ -222,7 +222,7 @@ public class InputFormTests : PageTest
         await Expect(opticsHeading).ToBeVisibleAsync();
 
         // Effective focal length metric should be present
-        var effFocalLabel = Page.Locator("#eff-focal-label");
+        var effFocalLabel = Page.Locator("#single-eff-focal-label");
         await Expect(effFocalLabel).ToBeVisibleAsync();
     }
 
@@ -232,7 +232,7 @@ public class InputFormTests : PageTest
         await WaitForBlazorAsync();
 
         // Results panel should have aria-label
-        var resultsPanel = Page.Locator("section[aria-label='Calculation results']");
+        var resultsPanel = Page.Locator("section[aria-label='Results']");
         await Expect(resultsPanel).ToBeVisibleAsync();
 
         // Status badge should have aria-label
@@ -247,11 +247,11 @@ public class InputFormTests : PageTest
         await WaitForBlazorAsync();
 
         // Pixel scale value should be linked to its label
-        var pixelScaleValue = Page.Locator("[aria-labelledby='pixel-scale-label']");
+        var pixelScaleValue = Page.Locator("[aria-labelledby='single-pixel-scale-label']");
         await Expect(pixelScaleValue).ToBeVisibleAsync();
 
         // FOV degrees should be linked to its label
-        var fovDegValue = Page.Locator("[aria-labelledby='fov-deg-label']");
+        var fovDegValue = Page.Locator("[aria-labelledby='single-fov-deg-label']");
         await Expect(fovDegValue).ToBeVisibleAsync();
     }
 
@@ -295,5 +295,277 @@ public class InputFormTests : PageTest
 
         // Results should be below inputs (Y position should be greater)
         Assert.That(resultsBox!.Y, Is.GreaterThan(inputsBox!.Y), "Results panel should be below inputs panel on mobile");
+    }
+}
+
+// --- Task 6: Comparison Mode Tests ---
+
+[Parallelizable(ParallelScope.Self)]
+[TestFixture]
+public class ComparisonModeTests : PageTest
+{
+    private const string BaseUrl = "http://localhost:5173";
+
+    public override BrowserNewContextOptions ContextOptions()
+    {
+        return new BrowserNewContextOptions
+        {
+            IgnoreHTTPSErrors = true,
+        };
+    }
+
+    private async Task WaitForBlazorAsync()
+    {
+        await Page.GotoAsync(BaseUrl, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+        await Expect(Page.Locator("h1")).ToHaveTextAsync("Sampling Calculator",
+            new() { Timeout = 30000 });
+    }
+
+    [Test]
+    public async Task CompareToggle_IsVisible()
+    {
+        await WaitForBlazorAsync();
+
+        var toggle = Page.Locator("input[type='checkbox']");
+        await Expect(toggle).ToBeVisibleAsync();
+
+        var toggleLabel = Page.Locator(".toggle-label");
+        await Expect(toggleLabel).ToHaveTextAsync("Compare mode");
+    }
+
+    [Test]
+    public async Task CompareToggle_OffByDefault()
+    {
+        await WaitForBlazorAsync();
+
+        var toggle = Page.Locator("input[type='checkbox']");
+        await Expect(toggle).Not.ToBeCheckedAsync();
+
+        // Copy button should not be visible
+        var copyBtn = Page.Locator(".copy-btn");
+        await Expect(copyBtn).Not.ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task CompareMode_EnabledShowsTwoPanels()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Should now see two input panels
+        var inputPanels = Page.Locator(".inputs-panel");
+        await Expect(inputPanels).ToHaveCountAsync(2);
+
+        // Should see two result panels
+        var resultPanels = Page.Locator(".results-panel");
+        await Expect(resultPanels).ToHaveCountAsync(2);
+    }
+
+    [Test]
+    public async Task CompareMode_ShowsSetupAAndSetupBLabels()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Should see "Setup A" and "Setup B" labels
+        await Expect(Page.Locator("h2:has-text('Setup A')")).ToBeVisibleAsync();
+        await Expect(Page.Locator("h2:has-text('Setup B')")).ToBeVisibleAsync();
+
+        // Should see "Results A" and "Results B" labels
+        await Expect(Page.Locator("h2:has-text('Results A')")).ToBeVisibleAsync();
+        await Expect(Page.Locator("h2:has-text('Results B')")).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task CompareMode_CopyButtonVisible()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        var copyBtn = Page.Locator(".copy-btn");
+        await Expect(copyBtn).ToBeVisibleAsync();
+        await Expect(copyBtn).ToContainTextAsync("Copy A");
+    }
+
+    [Test]
+    public async Task CompareMode_CopyAToB_CopiesValues()
+    {
+        await WaitForBlazorAsync();
+
+        // Change Setup A focal length before enabling compare mode
+        var focalLengthA = Page.Locator("#single-focalLength");
+        await focalLengthA.FillAsync("1200");
+        await focalLengthA.DispatchEventAsync("input");
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Setup B should have same value (copied when entering compare mode)
+        var focalLengthB = Page.Locator("#b-focalLength");
+        await Expect(focalLengthB).ToHaveValueAsync("1200");
+    }
+
+    [Test]
+    public async Task CompareMode_IndependentInputs()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Change Setup A
+        var focalLengthA = Page.Locator("#a-focalLength");
+        await focalLengthA.FillAsync("1500");
+        await focalLengthA.DispatchEventAsync("input");
+
+        // Setup B should still have the original value
+        var focalLengthB = Page.Locator("#b-focalLength");
+        await Expect(focalLengthB).ToHaveValueAsync("800");
+    }
+
+    [Test]
+    public async Task CompareMode_CopyButton_UpdatesSetupB()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Change Setup A to different values
+        var focalLengthA = Page.Locator("#a-focalLength");
+        await focalLengthA.FillAsync("2000");
+        await focalLengthA.DispatchEventAsync("input");
+
+        var binningA = Page.Locator("#a-binning");
+        await binningA.SelectOptionAsync("2");
+
+        // Click Copy A to B
+        await Page.Locator(".copy-btn").ClickAsync();
+
+        // Verify Setup B now matches
+        var focalLengthB = Page.Locator("#b-focalLength");
+        await Expect(focalLengthB).ToHaveValueAsync("2000");
+
+        var binningB = Page.Locator("#b-binning");
+        await Expect(binningB).ToHaveValueAsync("2");
+    }
+
+    [Test]
+    public async Task CompareMode_BothResultsUpdate()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Both results should have status badges
+        var statusBadges = Page.Locator(".status-badge");
+        await Expect(statusBadges).ToHaveCountAsync(2);
+
+        // Change Setup A binning to see different result
+        await Page.Locator("#a-binning").SelectOptionAsync("4");
+
+        // Results A should still show (pixel scale changed)
+        var resultsA = Page.Locator(".setup-a .results-panel .primary-metric-value").First;
+        await Expect(resultsA).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task CompareMode_DisablingReturnsSinglePanel()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Verify two panels exist
+        await Expect(Page.Locator(".inputs-panel")).ToHaveCountAsync(2);
+
+        // Disable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Should be back to single panel
+        await Expect(Page.Locator(".inputs-panel")).ToHaveCountAsync(1);
+        await Expect(Page.Locator(".results-panel")).ToHaveCountAsync(1);
+    }
+
+    [Test]
+    public async Task CompareMode_Desktop_SideBySideLayout()
+    {
+        // Set large desktop viewport
+        await Page.SetViewportSizeAsync(1400, 900);
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // The two setup columns should be side by side
+        var setupA = Page.Locator(".setup-a");
+        var setupB = Page.Locator(".setup-b");
+
+        var boxA = await setupA.BoundingBoxAsync();
+        var boxB = await setupB.BoundingBoxAsync();
+
+        Assert.That(boxA, Is.Not.Null);
+        Assert.That(boxB, Is.Not.Null);
+
+        // Setup B should be to the right of Setup A
+        Assert.That(boxB!.X, Is.GreaterThan(boxA!.X), "Setup B should be to the right of Setup A on desktop");
+    }
+
+    [Test]
+    public async Task CompareMode_Mobile_StackedLayout()
+    {
+        // Set mobile viewport
+        await Page.SetViewportSizeAsync(375, 800);
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // The two setup columns should be stacked
+        var setupA = Page.Locator(".setup-a");
+        var setupB = Page.Locator(".setup-b");
+
+        var boxA = await setupA.BoundingBoxAsync();
+        var boxB = await setupB.BoundingBoxAsync();
+
+        Assert.That(boxA, Is.Not.Null);
+        Assert.That(boxB, Is.Not.Null);
+
+        // Setup B should be below Setup A
+        Assert.That(boxB!.Y, Is.GreaterThan(boxA!.Y), "Setup B should be below Setup A on mobile");
+    }
+
+    [Test]
+    public async Task CompareMode_SetupAHasAccentBorder()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Setup A should exist with its border styling
+        var setupA = Page.Locator(".setup-a .inputs-panel");
+        await Expect(setupA).ToBeVisibleAsync();
+    }
+
+    [Test]
+    public async Task CompareMode_SetupBHasGreenBorder()
+    {
+        await WaitForBlazorAsync();
+
+        // Enable compare mode
+        await Page.Locator("input[type='checkbox']").ClickAsync();
+
+        // Setup B should exist with its border styling
+        var setupB = Page.Locator(".setup-b .inputs-panel");
+        await Expect(setupB).ToBeVisibleAsync();
     }
 }

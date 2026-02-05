@@ -827,3 +827,126 @@ public class InputValidationServiceTests
         Assert.Null(result.ErrorMessage);
     }
 }
+
+// --- Task 6: CalculatorInput Clone and CopyFrom tests ---
+
+public class CalculatorInputCopyTests
+{
+    [Fact]
+    public void Clone_CreatesIndependentCopy()
+    {
+        var original = new CalculatorInput
+        {
+            BaseFocalLength = 1200,
+            ApertureDiameter = 250,
+            ReducerFactor = 0.75,
+            BarlowFactor = 1.5,
+            PixelSize = 4.5,
+            SensorWidthPx = 4096,
+            SensorHeightPx = 2160,
+            Binning = 2,
+            CameraName = "Test Camera",
+            Seeing = 2.5
+        };
+
+        var clone = original.Clone();
+
+        // Verify all values match
+        Assert.Equal(original.BaseFocalLength, clone.BaseFocalLength);
+        Assert.Equal(original.ApertureDiameter, clone.ApertureDiameter);
+        Assert.Equal(original.ReducerFactor, clone.ReducerFactor);
+        Assert.Equal(original.BarlowFactor, clone.BarlowFactor);
+        Assert.Equal(original.PixelSize, clone.PixelSize);
+        Assert.Equal(original.SensorWidthPx, clone.SensorWidthPx);
+        Assert.Equal(original.SensorHeightPx, clone.SensorHeightPx);
+        Assert.Equal(original.Binning, clone.Binning);
+        Assert.Equal(original.CameraName, clone.CameraName);
+        Assert.Equal(original.Seeing, clone.Seeing);
+
+        // Verify independence - modifying clone doesn't affect original
+        clone.BaseFocalLength = 999;
+        clone.ApertureDiameter = 100;
+        clone.CameraName = "Modified";
+
+        Assert.Equal(1200, original.BaseFocalLength);
+        Assert.Equal(250, original.ApertureDiameter);
+        Assert.Equal("Test Camera", original.CameraName);
+    }
+
+    [Fact]
+    public void Clone_WithNullAperture_ClonesCorrectly()
+    {
+        var original = new CalculatorInput { ApertureDiameter = null };
+
+        var clone = original.Clone();
+
+        Assert.Null(clone.ApertureDiameter);
+    }
+
+    [Fact]
+    public void Clone_WithNullCameraName_ClonesCorrectly()
+    {
+        var original = new CalculatorInput { CameraName = null };
+
+        var clone = original.Clone();
+
+        Assert.Null(clone.CameraName);
+    }
+
+    [Fact]
+    public void CopyFrom_CopiesAllValues()
+    {
+        var source = new CalculatorInput
+        {
+            BaseFocalLength = 1500,
+            ApertureDiameter = 300,
+            ReducerFactor = 0.63,
+            BarlowFactor = 2.0,
+            PixelSize = 2.4,
+            SensorWidthPx = 9576,
+            SensorHeightPx = 6388,
+            Binning = 3,
+            CameraName = "Source Camera",
+            Seeing = 1.8
+        };
+
+        var target = new CalculatorInput(); // Has default values
+
+        target.CopyFrom(source);
+
+        Assert.Equal(source.BaseFocalLength, target.BaseFocalLength);
+        Assert.Equal(source.ApertureDiameter, target.ApertureDiameter);
+        Assert.Equal(source.ReducerFactor, target.ReducerFactor);
+        Assert.Equal(source.BarlowFactor, target.BarlowFactor);
+        Assert.Equal(source.PixelSize, target.PixelSize);
+        Assert.Equal(source.SensorWidthPx, target.SensorWidthPx);
+        Assert.Equal(source.SensorHeightPx, target.SensorHeightPx);
+        Assert.Equal(source.Binning, target.Binning);
+        Assert.Equal(source.CameraName, target.CameraName);
+        Assert.Equal(source.Seeing, target.Seeing);
+    }
+
+    [Fact]
+    public void CopyFrom_OverwritesExistingValues()
+    {
+        var source = new CalculatorInput { BaseFocalLength = 2000, Binning = 4 };
+        var target = new CalculatorInput { BaseFocalLength = 500, Binning = 1 };
+
+        target.CopyFrom(source);
+
+        Assert.Equal(2000, target.BaseFocalLength);
+        Assert.Equal(4, target.Binning);
+    }
+
+    [Fact]
+    public void CopyFrom_SourceUnaffected()
+    {
+        var source = new CalculatorInput { BaseFocalLength = 1000 };
+        var target = new CalculatorInput();
+
+        target.CopyFrom(source);
+        target.BaseFocalLength = 9999;
+
+        Assert.Equal(1000, source.BaseFocalLength);
+    }
+}
